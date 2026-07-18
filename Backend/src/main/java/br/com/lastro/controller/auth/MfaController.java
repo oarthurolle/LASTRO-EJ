@@ -1,0 +1,224 @@
+package br.com.lastro.controller.auth;
+
+import br.com.lastro.config.security.UsuarioPrincipal;
+import br.com.lastro.dto.LoginResponse;
+import br.com.lastro.dto.mfa.MfaConfirmRequest;
+import br.com.lastro.dto.mfa.MfaDisableRequest;
+import br.com.lastro.dto.mfa.MfaSetupResponse;
+import br.com.lastro.dto.mfa.MfaVerifyRequest;
+import br.com.lastro.service.auth.MfaService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/mfa")
+@RequiredArgsConstructor
+@Tag(name = "MFA", description = "Endpoints para setup e validação de autenticação em dois fatores (TOTP).")
+public class MfaController {
+
+    private final MfaService mfaService;
+
+    @GetMapping("/setup")
+    @Operation(
+            summary = "Gerar dados de setup do MFA (QR Code)",
+            description = """
+                    Retorna os dados necessários para configurar MFA (TOTP) em um aplicativo autenticador \
+                    (Google Authenticator, Microsoft Authenticator etc).
+
+                    Requer JWT de acesso no header Authorization (Bearer).
+                    """,
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Dados do setup retornados com sucesso",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = MfaSetupResponse.class),
+                            examples = {
+                                    @ExampleObject(
+                                            name = "MFA ainda desabilitado (retorna QR)",
+                                            value = """
+                                {
+                                  "mfaEnabled": false,
+                                  "qrCodeDataUri": "data:image/png;base64,iVBORw0KGgoAAA..."
+                                }
+                                """
+                                    ),
+                                    @ExampleObject(
+                                            name = "MFA já habilitado (sem QR)",
+                                            value = """
+                                {
+                                  "mfaEnabled": true
+                                }
+                                """
+                                    )
+                            }
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Não autenticado (JWT ausente/inválido)",
+                    content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "Sem permissão de acesso",
+                    content = @Content
+            )
+    })
+    @PreAuthorize("hasAuthority('PRIV_MFA_SELF_MANAGE')")
+    public ResponseEntity<?> mfaSetup(@AuthenticationPrincipal UsuarioPrincipal usuarioPrincipal) {
+        return ResponseEntity.ok(
+                mfaService.mfaSetupForUser(
+                        usuarioPrincipal.getUserDto().getId()
+                ));
+    }
+
+    @PostMapping("/confirm")
+    @Operation(
+            summary = "Confirmar e habilitar MFA (valida o primeiro código TOTP)",
+            description = """
+                    Após escanear o QR Code no aplicativo autenticador, o usuário envia o código TOTP (6 dígitos).
+                    Se o código estiver correto, o MFA é habilitado para a conta.
+
+                    Requer JWT de acesso no header Authorization (Bearer).
+                    """,
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "MFA habilitado com sucesso (sem conteúdo)"),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Request inválido (validação de body)",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
+            ),
+            @ApiResponse(responseCode = "401", description = "Não autenticado (JWT ausente/inválido)", content = @Content),
+            @ApiResponse(responseCode = "403", description = "Sem permissão de acesso", content = @Content),
+            @ApiResponse(
+                    responseCode = "409",
+                    description = "Conflito/estado inválido (ex.: MFA não iniciado/secret ausente)",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
+            )
+    })
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            required = true,
+            description = "Código TOTP gerado pelo aplicativo autenticador (6 dígitos).",
+            content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = MfaConfirmRequest.class),
+                    examples = @ExampleObject(value = """
+                    { "code": "123456" }
+                    """)
+            )
+    )
+    @PreAuthorize("hasAuthority('PRIV_MFA_SELF_MANAGE')")
+    public ResponseEntity<?> confirmMfa(@AuthenticationPrincipal UsuarioPrincipal usuarioPrincipal,
+                                        @Valid @RequestBody MfaConfirmRequest req) {
+        mfaService.confirmMfa(
+                usuarioPrincipal.getUserDto().getId(),
+                req.getCode()
+        );
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/verify")
+    @Operation(
+            summary = "Verificar MFA no login (troca challenge token por JWT final)",
+            description = """
+                    Usado quando /auth/login retorna mfaRequired=true.
+                    Envie:
+                    - mfaToken: token de desafio retornado no login (curta duração)
+                    - mfaCode: código TOTP (6 dígitos)
+
+                    Se válido, retorna o JWT final de acesso.
+                    """,
+            security = @SecurityRequirement(name = "")
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "MFA verificado e JWT final emitido com sucesso",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = LoginResponse.class),
+                            examples = @ExampleObject(value = """
+                        {
+                          "authenticated": true,
+                          "mfaRequired": false,
+                          "token": "eyJhbGciOiJSUzI1NiJ9.eyJ0eXAiOiJhY2Nlc3MiLCJtZmFfdmVyaWZpZWQiOnRydWUsInJvbGVzIjpbIkFETUlOIl0sInByaXZpbGVnZXMiOlsiTUZBX1NFTEZfTUFOQUdFIl0sImlzcyI6Ik5vbWVEb1NldVByb2pldG8iLCJzdWIiOiIxIn0....",
+                          "refreshToken": "99b5fec941ae8fd37e.",
+                          "expiresInSeconds": 3600
+                        }
+                        """)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Request inválido (validação de body)",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)
+            ),
+            @ApiResponse(responseCode = "401", description = "Não autenticado (JWT ausente/inválido)", content = @Content),
+            @ApiResponse(responseCode = "403", description = "Sem permissão de acesso", content = @Content)
+    })
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            required = true,
+            description = "Token de desafio MFA e código TOTP (6 dígitos).",
+            content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = MfaVerifyRequest.class),
+                    examples = @ExampleObject(value = """
+                    {
+                      "mfaToken": "eyJhbGciOiJSUzI1NiJ9.eyJ0eXAiOiJtZmFfY2hhbGxlbmdlIiwibWZhIjoicGVuZGluZyIsInN1YiI6IjEiLCJleHAiOjE3NzE0...",
+                      "mfaCode": "123456"
+                    }
+                    """)
+            )
+    )
+    public ResponseEntity<?> verifyMfa(
+            @Valid @RequestBody MfaVerifyRequest req) {
+        return ResponseEntity.ok(
+                mfaService.verifyMfa(
+                        req
+                )
+        );
+    }
+
+    @DeleteMapping
+    @Operation(
+            summary = "Desabilitar MFA",
+            description = """
+                    Remove a autenticação em dois fatores da conta autenticada.
+                    Exige a senha atual e um código TOTP válido para evitar desabilitação indevida.
+                    """,
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "MFA removido com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Request inválido", content = @Content),
+            @ApiResponse(responseCode = "401", description = "Não autenticado ou credenciais inválidas", content = @Content),
+            @ApiResponse(responseCode = "403", description = "Sem permissão de acesso", content = @Content)
+    })
+    @PreAuthorize("hasAuthority('PRIV_MFA_SELF_DISABLE')")
+    public ResponseEntity<?> disableMfa(
+            @AuthenticationPrincipal UsuarioPrincipal usuarioPrincipal,
+            @Valid @RequestBody MfaDisableRequest request
+    ) {
+        mfaService.disableMfa(usuarioPrincipal.getUserDto().getId(), request);
+        return ResponseEntity.noContent().build();
+    }
+}

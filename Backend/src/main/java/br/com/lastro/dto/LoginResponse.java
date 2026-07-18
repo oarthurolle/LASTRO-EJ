@@ -1,0 +1,16 @@
+package br.com.lastro.dto;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
+
+@Data
+public class LoginResponse {
+    @Schema(example = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...", description = "JWT de acesso")
+    private String token;
+    private String refreshToken;
+    private boolean authenticated;
+    private boolean mfaRequired;
+    private boolean emailVerificationRequired;
+    private String mfaToken;       // token curto (mfaRequired = true)
+    private Long expiresInSeconds;
+}
