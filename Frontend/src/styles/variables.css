@@ -1,0 +1,115 @@
+/* GOOGLE FONTS */
+
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+/* DESIGN TOKENS */
+
+:root {
+
+  /* CORES DA MARCA */
+
+  --color-primary-900: #0F0A38;
+  --color-primary-800: #130D3F;
+  --color-primary-700: #241A6B;
+  --color-primary-600: #3F54F5;
+  --color-primary-500: #5B74FF;
+  --color-primary-400: #8497F0;
+  --color-primary-300: #C7D2F8;
+  --color-primary-200: #E7ECFC;
+
+  /* BOTÕES */
+
+  --color-button-bg: var(--color-primary-600);
+  --color-button-bg-hover: var(--color-primary-500);
+
+  /* BACKGROUNDS */
+
+  --color-bg: #FFFFFF;
+  --color-bg-alt: #F6F7FB;
+
+  --gradient-bg: linear-gradient(
+    180deg,
+    var(--color-primary-900) 0%,
+    var(--color-primary-800) 50%,
+    var(--color-primary-700) 100%
+  );
+
+  /* CORES DE TEXTO */
+
+  --color-text-dark: #15123E;
+  --color-text-light: #FFFFFF;
+  --color-text-secondary: #5B5E8C;
+  --color-text-tertiary: var(--color-primary-400);
+
+ 
+/* ESTADOS */
+
+--color-error: #E74C3C;
+--color-success: #27AE60;
+--color-warning: #F39C12;
+--color-info: #3498DB;
+
+/* OVERLAY */
+--color-overlay: rgba(15, 10, 56, 0.5);
+
+  /* BORDAS */
+
+  --color-border: #E4E6F2;
+  --color-border-light: var(--color-primary-300);
+
+  /* TIPOGRAFIA */
+
+  --font-heading: "Space Grotesk", sans-serif;
+  --font-body: "Inter", sans-serif;
+
+  /* TAMANHOS DE FONTE */
+
+  --font-size-h1: clamp(1.75rem, 1.3rem + 2.2vw, 2.5rem);
+  --font-size-h2: clamp(1.5rem, 1.2rem + 1.5vw, 2rem);
+  --font-size-h3: clamp(1.25rem, 1.1rem + .8vw, 1.5rem);
+
+  --font-size-body: 1.0625rem;
+  --font-size-header: 1rem;
+  --font-size-footer: .9375rem;
+  --font-size-section: .8125rem;
+
+  /* PESOS DA FONTE */
+
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* ESPAÇAMENTOS */
+
+  --space-xs: .5rem;
+  --space-sm: 1rem;
+  --space-md: 1.5rem;
+  --space-lg: 2rem;
+  --space-xl: 4rem;
+  --space-2xl: 6rem;
+
+  /* BORDER RADIUS */
+
+  --radius-sm: .5rem;
+  --radius-md: .75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-full: 9999px;
+
+  /* SOMBRAS */
+
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, .05);
+  --shadow-md: 0 6px 18px rgba(0, 0, 0, .08);
+  --shadow-lg: 0 10px 30px rgba(0, 0, 0, .12);
+
+  /* TRANSIÇÕES */
+
+  --transition-fast: .2s ease;
+  --transition-normal: .3s ease;
+  --transition-slow: .5s ease;
+
+  /* LAYOUT */
+
+  --container-width: 1200px;
+}
