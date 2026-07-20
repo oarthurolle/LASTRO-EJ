@@ -1,0 +1,52 @@
+package br.com.lastro.config.security;
+
+import br.com.lastro.repository.UserRepository;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.jwt.Jwt;
+
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Configuration
+public class JwtConverterConfig {
+
+    @Bean
+    public Converter<Jwt, ? extends AbstractAuthenticationToken> jwtAuthenticationConverter(
+            UserRepository userRepository
+    ) {
+        return jwt -> {
+            Long userId = Long.valueOf(jwt.getSubject());
+
+            var roles = jwt.getClaimAsStringList("roles");
+            if (roles == null) roles = List.of();
+            var privileges = jwt.getClaimAsStringList("privileges");
+            if (privileges == null) privileges = List.of();
+
+            var authorities = roles.stream()
+                    .map(r -> new SimpleGrantedAuthority("ROLE_" + r))
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
+            authorities.addAll(
+                    privileges.stream()
+                            .map(privilege -> new SimpleGrantedAuthority("PRIV_" + privilege))
+                            .toList()
+            );
+
+            var user = userRepository.findById(userId)
+                    .orElseThrow(() -> new RuntimeException("Usuário não encontrado."));
+
+            var principal = new UsuarioPrincipal(user, authorities);
+
+            return new UsernamePasswordAuthenticationToken(
+                    principal,
+                    jwt.getTokenValue(),
+                    authorities
+            );
+        };
+    }
+}
