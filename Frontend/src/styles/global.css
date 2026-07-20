@@ -159,6 +159,21 @@ table {
   padding-inline: var(--space-md);
 }
 
+
+#root {
+  min-height: 100vh;
+}
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-content {
+  flex: 1;
+}
+
 @media (max-width: 768px) {
   .container {
     padding-inline: var(--space-sm);

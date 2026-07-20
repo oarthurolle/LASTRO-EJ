@@ -1,16 +1,18 @@
-import './styles/global.css'
-import './App.css'
-import { Navbar } from './components/common/Navbar'
+import { Navbar } from "./components/common/Navbar";
+import Footer from "./components/common/Footer";
 
 function App() {
   return (
-    <div>
+    <div className="app">
       <Navbar />
-      <main>
-      
+
+      <main className="main-content">
+        {/* Conteúdo das páginas */}
       </main>
+
+      <Footer />
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
