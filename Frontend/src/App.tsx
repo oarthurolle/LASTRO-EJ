@@ -1,8 +1,14 @@
 import './styles/global.css'
+import './App.css'
+import { Navbar } from './components/common/Navbar'
 
 function App() {
   return (
-    <div className="App">
+    <div>
+      <Navbar />
+      <main>
+      
+      </main>
     </div>
   )
 }
