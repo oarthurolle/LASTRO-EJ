@@ -1,0 +1,158 @@
+import "./Footer.css";
+
+import { FaInstagram, FaLinkedin } from "react-icons/fa";
+import logo from "../../assets/logos/logoWhite.png";
+
+const Footer = () => {
+  return (
+    <footer className="footer">
+      <div className="container footer__container">
+
+        {/*  Marca e Redes Sociais */}
+
+        <div className="footer__brand">
+
+          <div className="footer__brand-header">
+
+            <img
+              src={logo}
+              alt="Logo Lastro"
+              className="footer__logo"
+            />
+
+            <h2 className="footer__nameLastro">
+              LASTRO
+            </h2>
+
+          </div>
+
+          <p className="footer__description">
+            Consultoria e investimentos com
+            <br />
+            método — empresa júnior
+            <br />
+            vinculada à UERN.
+          </p>
+
+            <div className="footer__social">
+
+                <a
+                    href="https://www.instagram.com/lastro.ej/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Instagram da Lastro"
+                    className="footer__social-link"
+                >
+                    <FaInstagram />
+                </a>
+
+                <a
+                    href="https://www.linkedin.com/company/lastro-consultoria-e-investimentos/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="LinkedIn da Lastro"
+                    className="footer__social-link"
+                >
+                    <FaLinkedin />
+                </a>
+            </div>
+        </div>
+
+        {/* Navegação */}
+
+        <div className="footer__column">
+
+          <h3>NAVEGAÇÃO</h3>
+
+          <ul>
+
+            <li>
+              <a href="/">Início</a>
+            </li>
+
+            <li>
+              <a href="/sobre">Sobre Nós</a>
+            </li>
+
+            <li>
+              <a href="/servicos">Serviços</a>
+            </li>
+
+            <li>
+              <a href="/cases">Cases</a>
+            </li>
+
+          </ul>
+
+        </div>
+
+        {/* Institucional */}
+
+        <div className="footer__column">
+
+          <h3>INSTITUCIONAL</h3>
+
+          <ul>
+
+            <li>
+              <a href="/blog">Blog</a>
+            </li>
+
+            <li>
+              <a href="/contato">Contato</a>
+            </li>
+
+            <li>
+              <a href="/privacidade">
+                Política de Privacidade
+              </a>
+            </li>
+
+          </ul>
+
+        </div>
+
+        {/* Contato */}
+
+        <div className="footer__column">
+
+          <h3>CONTATO</h3>
+
+          <ul>
+
+            <li>lastro.ej@uern.br</li>
+
+            <li>(84) 99460-7110</li>
+
+            <li>Mossoró, RN</li>
+
+          </ul>
+
+        </div>
+
+      </div>
+
+      {/* Rodapé */}
+
+      <div className="container">
+
+        <div className="footer__bottom">
+
+          <p>
+            © 2026 LASTRO Consultoria & Investimentos —
+            Empresa Júnior UERN
+          </p>
+
+          <a href="/privacidade">
+            Política de Privacidade
+          </a>
+
+        </div>
+
+      </div>
+
+    </footer>
+  );
+};
+
+export default Footer;
