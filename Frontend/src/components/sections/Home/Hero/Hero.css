@@ -94,6 +94,7 @@
 
   .hero {
     padding: var(--space-xl) 0;
+    padding-bottom: 10rem;
   }
 
   .hero__container {
