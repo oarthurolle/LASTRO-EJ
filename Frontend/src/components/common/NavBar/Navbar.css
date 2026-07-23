@@ -151,6 +151,9 @@
 }
 
 @media (max-width: 768px) {
+  .navbar {
+    position: static;
+  }
   .navbar-container {
     flex-wrap: wrap;
     justify-content: space-between;

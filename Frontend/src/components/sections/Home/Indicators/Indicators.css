@@ -7,7 +7,7 @@
 
 .indicators__card {
   width: 100%;
-  max-width: 57rem; 
+  max-width: 57rem;  
   height: 10.75rem; 
 
   margin: 0 auto;
@@ -75,8 +75,12 @@
 }
 
 @media (max-width: 992px) {
+  .indicators{
+    margin-top: 2rem;
+  }
   .indicators__card {
     width: 100%;
+    max-width: 12rem;
     height: auto;
 
     grid-template-columns: 1fr;

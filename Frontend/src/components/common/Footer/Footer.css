@@ -1,14 +1,12 @@
 .footer {
-  margin-top: 6rem;
-  min-height: 19rem; 
-
+  min-height: 19rem;
+  margin-top: 0;
+  padding-top: 0;
   background: var(--color-footer-bg);
   color: var(--color-text-light);
-
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-
   padding: 3rem 0 1rem;
 }
 
