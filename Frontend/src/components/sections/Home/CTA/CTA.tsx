@@ -7,9 +7,8 @@ import marca from "./../../../../assets/logos/logoName.png";
 
 const CTA = () => {
   return (
-    <section className="cta">
+    <section  id="cta" className="cta">
 
-      {/* Onda superior */}
       <img src={wave} alt="" className="cta-wave" />
 
       <div className="container">
