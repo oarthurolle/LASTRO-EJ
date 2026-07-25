@@ -1,0 +1,41 @@
+.section-title{
+
+    text-align:center;
+
+    margin-bottom:var(--space-xl);
+
+}
+
+.section-title__subtitle{
+
+    display:block;
+
+    margin-bottom:var(--space-xs);
+
+    color:var(--color-text-tertiary);
+
+    font-size:var(--font-size-section);
+
+    text-transform:uppercase;
+
+    letter-spacing:.08rem;
+
+}
+
+.section-title__title{
+
+    color:var(--color-text-light);
+
+    margin-bottom:var(--space-sm);
+
+}
+
+.section-title__description{
+
+    color:var(--color-primary-200);
+
+    max-width:500px;
+
+    margin:auto;
+
+}

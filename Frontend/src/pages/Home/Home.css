@@ -1,0 +1,4 @@
+.home {
+  background: var(--gradient-bg);
+  min-height: 100vh;
+}
