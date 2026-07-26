@@ -1,75 +1,61 @@
-# React + TypeScript + Vite
+# LASTRO EJ - Site Institucional (Frontend)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Este é o repositório frontend para o site institucional da LASTRO EJ. Ele consome a API do Backend Spring Boot e fornece a interface pública e administrativa para os recursos do site.
 
-Currently, two official plugins are available:
+## Stack Tecnológica
+- **Framework:** React 19 + TypeScript
+- **Build Tool:** Vite
+- **Ícones e UI:** Lucide React e React Icons
+- **Carrossel:** Embla Carousel
+- **Linter:** ESLint
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Funcionalidades e Telas
+A aplicação front-end consome os endpoints estipulados no contrato global e abrange:
+1. **Home Dinâmica:** Exibição do carrossel de Parceiros, listagem de Indicadores da empresa e formulário de Contato com proteção anti-spam.
+2. **Cases de Sucesso:** Listagem de portfólio no formato *Problema -> Solução -> Resultado*.
+3. **Blog Institucional:** Leitura de postagens completas e listagem paginada consumida por *slug*.
+4. **Painel Administrativo:** (Para os usuários autenticados com token JWT e privilégios específicos)
+   - Criação, edição e publicação de postagens do Blog (`PRIV_BLOG_ADMIN`).
+   - Gestão de Cases de Sucesso (`PRIV_CASES_ADMIN`).
+   - Gestão da ordem (`sortOrder`) e visibilidade (`active`) de Parceiros (`PRIV_PARTNERS_ADMIN`).
+   - Atualização de valores dos Indicadores (`PRIV_INDICATORS_ADMIN`).
+   - Visualização da caixa de leads do Contato (`PRIV_CONTACTS_VIEW`).
 
-## React Compiler
+## Como Executar Localmente
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Pré-requisitos
+- Node.js
+- Gerenciador de pacotes npm
+- Backend rodando localmente (normalmente em `http://localhost:8080`)
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+### Instalação de Dependências
+```bash
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+### Execução em Desenvolvimento
+```bash
+npm run dev
 ```
+
+O comando acima iniciará o servidor Vite, geralmente na porta `5173`.
+
+### Build para Produção
+```bash
+npm run build
+```
+
+## Integração com a API (Backend)
+O frontend espera que a API backend (Spring Boot) obedeça rigorosamente aos contratos definidos nos documentos normativos:
+- **Rotas Públicas** (`/api/public/*`): Não necessitam de token. Trazem os dados já filtrados e ordenados.
+- **Rotas Administrativas** (`/api/admin/*`): Exigem o token no header `Authorization: Bearer <TOKEN>`.
+- Todos os JSONs transitam em `camelCase`.
+- Retornos de erro seguem o padrão global definido pelo backend, contendo `timestamp`, `status`, `error`, `message` e `path`.
+
+## Metodologia de Desenvolvimento
+O desenvolvimento de novas features e integrações no frontend deve ser precedido por alinhamento e leitura atenta dos requisitos da API (conforme documentado na pasta do Backend).
+- **Não assuma comportamentos não documentados**. 
+- Qualquer mudança em payloads, obrigatoriedade de campos ou nomes de variáveis que afete a comunicação deve ser formalizada.
+
+---
+**Nota para Desenvolvedores e Agentes:** Sempre verifique a comunicação com os endpoints listados e a especificação de domínio do projeto antes de alterar estados de componentes que trafegam informações para a API.
