@@ -22,3 +22,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Docs
+docs/reports
+docs/tasks
+docs/specs
+docs/technical-plans

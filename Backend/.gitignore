@@ -105,3 +105,9 @@ $RECYCLE.BIN/
 
 # Node
 node_modules/
+
+# Docs
+docs/reports
+docs/tasks
+docs/specs
+docs/technical-plans
