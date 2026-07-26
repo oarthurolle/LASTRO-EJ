@@ -33,7 +33,7 @@ public class JwtConverterConfig {
                     .collect(Collectors.toCollection(LinkedHashSet::new));
             authorities.addAll(
                     privileges.stream()
-                            .map(privilege -> new SimpleGrantedAuthority("PRIV_" + privilege))
+                            .map(SimpleGrantedAuthority::new)
                             .toList()
             );
 

@@ -1,6 +1,6 @@
 # Spec: Blog (001-blog)
 
-Status: DRAFT
+Status: APPROVED
 Responsável: Equipe Backend
 Última atualização: 2026-07-26
 
@@ -30,12 +30,18 @@ Permitir a gestão administrativa (criação, edição e publicação) de postag
 - `GET /api/public/posts`
 - `GET /api/public/posts/{slug}`
 - `POST /api/admin/posts`
-- (Outros métodos do CRUD a definir em `/api/admin/posts`)
+- `PUT /api/admin/posts/{id}`
+- `PATCH /api/admin/posts/{id}/publish`
+- `PATCH /api/admin/posts/{id}/unpublish`
+- `DELETE /api/admin/posts/{id}`
 
-## Perguntas em Aberto (Divergências identificadas)
-- Paginação vs array simples no retorno de `GET /api/public/posts`.
-- Nome do parâmetro de busca para texto.
-- Inclusão de `author`, `coverImageUrl` e `category` no payload de criação.
+## Decisões Resolvidas
+- **Paginação vs array simples:** Utilizaremos paginação nativa do Spring Data (`Page<T>`) no retorno de `GET /api/public/posts`.
+- **Nome do parâmetro de busca:** O parâmetro de busca textual será `search`.
+- **Inclusão de campos:** Os campos `coverImageUrl` e `category` foram incluídos no payload de criação e edição.
+- **Autor automático:** O campo `author` foi removido do payload de request; o sistema injeta automaticamente o `presentationName` do usuário logado como autor do post.
+- **Rascunhos por padrão:** O campo `status` foi tornado opcional na request e ignorado na criação; todo post nasce como `DRAFT` obrigatoriamente.
+- **Unicidade rigorosa:** O sistema retorna HTTP 409 (Conflict) caso o administrador tente criar um post cujo título resulte num slug já existente, prevenindo posts com títulos iguais.
 
 ## Critérios de Aceite
 - [ ] Post publicado é listado corretamente em `/api/public/posts`.

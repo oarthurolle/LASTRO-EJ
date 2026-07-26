@@ -39,6 +39,9 @@ public class User implements Serializable {
     @JsonIgnore
     private String password;
 
+    @Column(name = "presentation_name", length = 150)
+    private String presentationName;
+
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "users_roles",
@@ -58,4 +61,9 @@ public class User implements Serializable {
 
     private LocalDateTime createdAt =  LocalDateTime.now();
     private LocalDateTime updatedAt;
+
+    @PreUpdate
+    public void preUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
 }

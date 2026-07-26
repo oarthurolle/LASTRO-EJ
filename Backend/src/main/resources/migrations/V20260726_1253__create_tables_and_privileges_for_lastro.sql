@@ -16,7 +16,7 @@ create table if not exists blog_posts (
     status varchar(50) not null,
     published_at timestamp(6),
     created_at timestamp(6) not null,
-    updated_at timestamp(6) not null,
+    updated_at timestamp(6),
     primary key (id)
 );
 
@@ -49,7 +49,7 @@ create table if not exists site_indicators (
     name varchar(255) not null,
     value varchar(255) not null,
     description varchar(255),
-    updated_at timestamp(6) not null,
+    updated_at timestamp(6),
     primary key (id)
 );
 

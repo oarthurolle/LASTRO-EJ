@@ -38,6 +38,9 @@ public class SetupInicial implements ApplicationRunner {
     @Value("${bootstrap.admin.password}")
     private String adminPassword;
 
+    @Value("${bootstrap.admin.presentation-name}")
+    private String adminPresentationName;
+
     @Override
     public void run(ApplicationArguments args) {
         Set<User> adminExists = userRepository.findByRole("ADMIN");
@@ -57,6 +60,7 @@ public class SetupInicial implements ApplicationRunner {
         admin.setEmail(adminEmail);
         admin.setPassword(passwordEncoder.encode(adminPassword));
         admin.setRoles(Set.of(adminRole));
+        admin.setPresentationName(adminPresentationName);
         admin.setEmailVerified(true);
         admin.setMfaEnabled(false);
 

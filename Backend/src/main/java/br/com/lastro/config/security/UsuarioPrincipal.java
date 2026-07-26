@@ -35,6 +35,7 @@ public class UsuarioPrincipal implements UserDetails {
         UserDTO userDto = new UserDTO();
         userDto.setId(user.getId());
         userDto.setEmail(user.getEmail());
+        userDto.setPresentationName(user.getPresentationName());
 
         return userDto;
     }

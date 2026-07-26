@@ -103,5 +103,5 @@ $RECYCLE.BIN/
 !src/test/resources/test-app.key
 !src/test/resources/test-app.pub
 
-# node
+# Node
 node_modules/
