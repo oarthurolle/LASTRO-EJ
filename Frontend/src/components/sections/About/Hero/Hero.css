@@ -1,0 +1,133 @@
+.about-hero {
+  padding-top: 3rem;
+  padding-bottom: 6rem;
+  background-color: transparent;
+}
+
+
+.about-hero__container {
+  width: min(90%, var(--container-width));
+
+  margin: 0 auto;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 5rem;
+}
+
+.about-hero__content {
+  flex: 1;
+  max-width: 34rem;
+}
+
+.about-hero__subtitle {
+  display: inline-block;
+
+  margin-bottom: var(--space-sm);
+
+  color: var(--color-primary-400);
+
+  font-family: var(--font-body);
+  font-size: var(--font-size-section);
+  font-weight: var(--font-weight-semibold);
+
+  text-transform: uppercase;
+  letter-spacing: .08rem;
+}
+
+.about-hero__title {
+  margin-bottom: var(--space-lg);
+
+  font-family: var(--font-heading);
+  font-size: 2.625rem; /* 42px */
+  font-weight: var(--font-weight-bold);
+  line-height: 1.15;
+
+  color: var(--color-text-light);
+}
+
+.about-hero__description {
+  margin-bottom: var(--space-md);
+
+  font-family: var(--font-body);
+  font-size: 1rem; /* 16px */
+  font-weight: var(--font-weight-regular);
+  line-height: 1.75;
+
+  color: var(--color-primary-200);
+}
+
+.about-hero__description:last-child {
+  margin-bottom: 0;
+}
+
+.about-hero__image {
+  flex: 1;
+
+  display: flex;
+  justify-content: flex-end;
+}
+
+.about-hero__image img {
+  width: 33.93rem;   
+  height: 22.06rem;  
+
+  object-fit: cover;
+
+  border-radius: var(--radius-xl);
+
+  display: block;
+}
+
+@media (max-width: 992px) {
+
+  .about-hero {
+    padding-top: 8rem;
+  }
+
+  .about-hero__container {
+    flex-direction: column-reverse;
+
+    text-align: center;
+
+    gap: 3rem;
+  }
+
+  .about-hero__content {
+    max-width: 100%;
+  }
+
+  .about-hero__subtitle {
+    display: block;
+  }
+
+  .about-hero__image {
+    justify-content: center;
+  }
+
+  .about-hero__image img {
+    width: 100%;
+    height: auto;
+
+    max-width: 34rem;
+  }
+}
+
+@media (max-width: 768px) {
+
+  .about-hero {
+    padding-top: 7rem;
+    padding-bottom: 4rem;
+  }
+
+  .about-hero__container {
+    width: 92%;
+  }
+
+  .about-hero__title {
+    font-size: 2rem;
+  }
+
+}

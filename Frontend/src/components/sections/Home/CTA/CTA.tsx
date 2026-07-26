@@ -1,7 +1,7 @@
 import "./CTA.css";
 
-import wave from "./../../../../assets/images/wave.png";
-import skyline from "./../../../../assets/images/skyline.png";
+import wave from "./../../../../assets/images/Home/wave.png";
+import skyline from "./../../../../assets/images/Home/skyline.png";
 import logo from "./../../../../assets/logos/logoWhite.png";
 import marca from "./../../../../assets/logos/logoName.png";
 

@@ -4,7 +4,7 @@ import Button from "../../../common/Button";
 
 import logoHero from "../../../../assets/logos/logoWhite.png";
 
-import decorativeImage from "../../../../assets/images/decorativeRipples.png";
+import decorativeImage from "../../../../assets/images/Home/decorativeRipples.png";
 
 export default function Hero() {
   return (

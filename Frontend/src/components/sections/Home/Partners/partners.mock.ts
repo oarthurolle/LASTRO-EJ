@@ -1,7 +1,7 @@
 import type { Partner } from "./types";
 
-import logoCDL from "../../../../assets/images/logo-cdl.png";
-import placeholder from "../../../../assets/images/placeholder.png";
+import logoCDL from "../../../../assets/images/Home/logo-cdl.png";
+import placeholder from "../../../../assets/images/Home/placeholder.png";
 
 export const partnersMock: Partner[] = [
   {

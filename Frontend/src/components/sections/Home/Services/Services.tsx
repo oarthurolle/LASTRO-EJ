@@ -1,8 +1,8 @@
 import "./Services.css";
 import Button from "../../../common/Button";
 
-import mascot from "../../../../assets/images/mascot.png";
-import speechBubble from "../../../../assets/images/speechBalloon.png";
+import mascot from "../../../../assets/images/Home/mascot.png";
+import speechBubble from "../../../../assets/images/Home/speechBalloon.png";
 
 const Services = () => {
   return (
