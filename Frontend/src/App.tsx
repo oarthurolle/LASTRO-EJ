@@ -5,6 +5,7 @@ import Footer from "./components/common/Footer/Footer";
 
 import Home from "./pages/Home/Home";
 import About from "./pages/About/About";
+import Services from "./pages/Services/Services";
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
             path="/sobre-nos"
             element={<About />}
           />
+          <Route path="/servicos" element={<Services />} />
 
         </Routes>
 
