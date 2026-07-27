@@ -4,16 +4,17 @@ interface SectionTitleProps {
   subtitle: string;
   title: string;
   description?: string;
+  align?: "center" | "left";
 }
 
 export default function SectionTitle({
   subtitle,
   title,
   description,
+  align = "center",
 }: SectionTitleProps) {
   return (
-    <div className="section-title">
-
+    <div className={`section-title section-title--${align}`}>
       <span className="section-title__subtitle">
         {subtitle}
       </span>
@@ -27,7 +28,6 @@ export default function SectionTitle({
           {description}
         </p>
       )}
-
     </div>
   );
 }
