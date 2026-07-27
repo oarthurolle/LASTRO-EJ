@@ -47,6 +47,8 @@
   line-height: 1.6;
 }
 
+/*RESPONSIVIDADE*/
+
 @media (max-width: 1200px) {
 
   .differential__grid {
