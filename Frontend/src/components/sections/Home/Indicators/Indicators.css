@@ -44,9 +44,7 @@
 
 .indicators--dark .indicators__card {
   background: var(--color-card-dark);
-
   border: 1px solid rgba(255, 255, 255, 0.08);
-
   box-shadow: none;
 }
 
