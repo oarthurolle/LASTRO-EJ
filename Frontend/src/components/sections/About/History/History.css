@@ -36,8 +36,6 @@
   margin-bottom: 0;
 }
 
-/* SECTION TITLE */
-
 .history .section-title {
   margin-bottom: 2.5rem;
 }
@@ -53,7 +51,6 @@
   line-height: 1.15;
 }
 
-
 .history__timeline {
   position: relative;
 
@@ -61,8 +58,6 @@
   flex-direction: column;
 
   gap: 2.75rem;
-
-  padding-left: 2.55rem;
 }
 
 .history__timeline::before {
@@ -70,30 +65,30 @@
 
   position: absolute;
 
-  left: .35rem;
-  top: .4rem;
-  bottom: .4rem;
+  left: .34375rem;
+  top: .5rem;
+  bottom: .5rem;
 
-  width: 2px;
+  width: .125rem;
 
-  background: rgba(199, 210, 248, .45);
+  background: rgba(199,210,248,.45);
 }
 
 .timeline__item {
-  position: relative;
+  display: grid;
 
-  display: flex;
+  grid-template-columns: .75rem 1fr;
+
+  column-gap: 1.5rem;
+
   align-items: flex-start;
 }
 
 .timeline__dot {
-  position: absolute;
-
-  left: -2.45rem;
-  top: .35rem;
-
   width: .75rem;
   height: .75rem;
+
+  margin-top: .25rem;
 
   border-radius: 50%;
 
@@ -135,59 +130,57 @@
 
 /* RESPONSIVIDADE */
 
-@media (max-width: 992px) {
+@media (max-width:62rem){
 
-  .history {
-    padding: 5rem 0;
+  .history{
+    padding:5rem 0;
   }
 
-  .history__container {
-    grid-template-columns: 1fr;
-
-    gap: 4rem;
-  }
-
-  .history .section-title__title {
-    max-width: 100%;
-  }
-
-  .history__content p {
-    max-width: 100%;
+  .history__container{
+    grid-template-columns:1fr;
+    gap:4rem;
   }
 
 }
 
-@media (max-width: 768px) {
+@media (max-width:48rem){
 
-  .history {
-    padding: 4rem 0;
+  .history{
+    padding:4rem 0;
   }
 
-  .history__timeline {
-    gap: 2.25rem;
-
-    padding-left: 2rem;
-  }
-
-  .timeline__dot {
-    left: -1.72rem;
+  .history__timeline{
+    gap:2rem;
   }
 
 }
 
-@media (max-width: 480px) {
+@media (max-width:30rem){
 
-  .history {
-    padding: 3rem 0;
+  .history{
+    padding:3rem 0;
   }
 
-  .history .section-title__title {
-    font-size: 1.75rem;
+  .history .section-title__title{
+    font-size:1.75rem;
+  }
+
+  .timeline__item{
+    column-gap:1.1rem;
+  }
+
+  .timeline__dot{
+    width:.625rem;
+    height:.625rem;
+
+    margin-top:.3rem;
+
+    box-shadow:0 0 0 .25rem var(--color-primary-700);
   }
 
   .history__content p,
-  .timeline__text p {
-    font-size: .9375rem;
+  .timeline__text p{
+    font-size:.9375rem;
   }
 
 }

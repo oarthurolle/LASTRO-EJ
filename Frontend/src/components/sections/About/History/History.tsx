@@ -54,7 +54,7 @@ export default function History() {
         <div className="history__timeline">
           {timeline.map((item, index) => (
             <div className="timeline__item" key={index}>
-              <div className="timeline__dot"></div>
+              <span className="timeline__dot"></span>
 
               <div className="timeline__text">
                 <h3>{item.title}</h3>

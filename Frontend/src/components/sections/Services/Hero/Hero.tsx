@@ -35,7 +35,7 @@ export default function Hero() {
             </a>
 
             <a
-              href="#servicos"
+              href="#catalog"
               className="services-hero__link"
             >
               Ver todos os serviços
