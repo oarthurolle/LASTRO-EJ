@@ -1,7 +1,7 @@
 export interface Partner {
   id: number;
   name: string;
-  logo: string;
-  website?: string;
-  instagram?: string;
+  logoUrl: string;
+  externalLink: string | null;
+  sortOrder: number;
 }

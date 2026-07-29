@@ -7,29 +7,11 @@ interface PartnerCardProps {
 }
 
 const PartnerCard = ({ partner }: PartnerCardProps) => {
-  const handleClick = () => {
-    if (partner.website) {
-      window.open(partner.website, "_blank", "noopener,noreferrer");
-      return;
-    }
-
-    if (partner.instagram) {
-      window.open(partner.instagram, "_blank", "noopener,noreferrer");
-    }
-  };
-
-  const clickable = Boolean(partner.website || partner.instagram);
-
-  return (
-    <article
-      className={`partner-card ${
-        clickable ? "partner-card--clickable" : ""
-      }`}
-      onClick={clickable ? handleClick : undefined}
-    >
+  const content = (
+    <article className={`partner-card ${partner.externalLink ? "partner-card--clickable" : ""}`}>
       <div className="partner-card__logo-wrapper">
         <img
-          src={partner.logo}
+          src={partner.logoUrl}
           alt={partner.name}
           className="partner-card__logo"
         />
@@ -39,6 +21,20 @@ const PartnerCard = ({ partner }: PartnerCardProps) => {
         {partner.name}
       </p>
     </article>
+  );
+
+  if (!partner.externalLink) return content;
+
+  return (
+    <a
+      className="partner-card__link"
+      href={partner.externalLink}
+      target="_blank"
+      rel="noreferrer"
+      aria-label={`Visitar o site de ${partner.name}`}
+    >
+      {content}
+    </a>
   );
 };
 

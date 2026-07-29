@@ -1,0 +1,60 @@
+.unavailable-page {
+  min-height: 65vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  padding: 7rem 1.5rem;
+  text-align: center;
+  color: #12366d;
+  background:
+    radial-gradient(circle at 50% 15%, rgba(34, 110, 197, 0.1), transparent 34%),
+    #f7f9fc;
+}
+
+.unavailable-page__icon {
+  width: 4.5rem;
+  height: 4.5rem;
+  display: grid;
+  place-items: center;
+  margin-bottom: 1.25rem;
+  border-radius: 1.35rem;
+  color: #fff;
+  background: linear-gradient(145deg, #163d78, #2876c7);
+  box-shadow: 0 1rem 2.5rem rgba(18, 54, 109, 0.2);
+}
+
+.unavailable-page > span {
+  color: #2876c7;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.unavailable-page h1 {
+  max-width: 44rem;
+  margin: 0.8rem 0;
+  font-size: clamp(2rem, 5vw, 3.6rem);
+  line-height: 1.06;
+}
+
+.unavailable-page p {
+  max-width: 38rem;
+  margin: 0 0 1.75rem;
+  color: #60708a;
+  font-size: 1.02rem;
+  line-height: 1.7;
+}
+
+.unavailable-page a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.85rem 1.2rem;
+  border-radius: 0.75rem;
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+  background: #163d78;
+}

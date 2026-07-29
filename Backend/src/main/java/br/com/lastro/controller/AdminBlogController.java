@@ -14,11 +14,13 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import br.com.lastro.config.security.UsuarioPrincipal;
 import br.com.lastro.entity.PostStatus;
 import org.springframework.web.bind.annotation.*;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping("/api/admin/posts")
 @RequiredArgsConstructor
 @PreAuthorize("hasAuthority('PRIV_BLOG_ADMIN')")
+@Tag(name = "Administração - Blog", description = "Gestão interna de postagens do blog (criação, edição, exclusão e publicação)")
 public class AdminBlogController {
 
     private final BlogPostService blogPostService;
@@ -27,7 +29,12 @@ public class AdminBlogController {
     public ResponseEntity<BlogPostResponseDTO> createPost(
             @RequestBody @Valid BlogPostRequestDTO dto,
             @AuthenticationPrincipal UsuarioPrincipal principal) {
-        BlogPostResponseDTO created = blogPostService.createPost(dto, principal.getUserDto().getPresentationName());
+        var authenticatedUser = principal.getUserDto();
+        String author = authenticatedUser.getPresentationName();
+        if (author == null || author.isBlank()) {
+            author = authenticatedUser.getEmail();
+        }
+        BlogPostResponseDTO created = blogPostService.createPost(dto, author);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 

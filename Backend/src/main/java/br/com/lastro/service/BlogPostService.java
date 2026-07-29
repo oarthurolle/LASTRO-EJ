@@ -7,16 +7,19 @@ import br.com.lastro.entity.BlogPost;
 import br.com.lastro.entity.PostStatus;
 import br.com.lastro.exception.exceptions.ConflictException;
 import br.com.lastro.exception.exceptions.NotFoundException;
+import br.com.lastro.exception.exceptions.ApiException;
 import br.com.lastro.repository.BlogPostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.http.HttpStatus;
 
 import java.text.Normalizer;
 import java.time.LocalDateTime;
 import java.util.Locale;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 @Service
@@ -24,6 +27,12 @@ import java.util.regex.Pattern;
 public class BlogPostService {
 
     private final BlogPostRepository repository;
+    private static final Set<String> ADMIN_SORT_FIELDS = Set.of(
+            "id", "title", "status", "publishedAt", "createdAt", "updatedAt"
+    );
+    private static final Set<String> PUBLIC_SORT_FIELDS = Set.of(
+            "title", "publishedAt", "createdAt"
+    );
 
     private static final Pattern NONLATIN = Pattern.compile("[^\\w-]");
     private static final Pattern WHITESPACE = Pattern.compile("[\\s]");
@@ -45,13 +54,13 @@ public class BlogPostService {
         }
 
         BlogPost post = new BlogPost();
-        post.setTitle(dto.getTitle());
+        post.setTitle(dto.getTitle().trim());
         post.setSlug(slug);
-        post.setSummary(dto.getSummary());
+        post.setSummary(dto.getSummary().trim());
         post.setContent(dto.getContent());
-        post.setCoverImageUrl(dto.getCoverImageUrl());
+        post.setCoverImageUrl(normalizeOptional(dto.getCoverImageUrl()));
         post.setAuthor(authorName);
-        post.setCategory(dto.getCategory());
+        post.setCategory(normalizeOptional(dto.getCategory()));
         post.setStatus(PostStatus.DRAFT);
 
         BlogPost saved = repository.save(post);
@@ -60,6 +69,7 @@ public class BlogPostService {
 
     @Transactional(readOnly = true)
     public Page<BlogPostResponseDTO> findAllPosts(Pageable pageable) {
+        validateSort(pageable, ADMIN_SORT_FIELDS);
         return repository.findAll(pageable).map(this::mapToResponseDTO);
     }
 
@@ -75,23 +85,32 @@ public class BlogPostService {
         BlogPost post = repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Postagem não encontrada"));
 
+        if (dto.getVersion() != null && !dto.getVersion().equals(post.getVersion())) {
+            throw new ConflictException("Esta postagem foi modificada por outro usuário. Por favor, recarregue a página antes de continuar.");
+        }
+
         String newSlug = toSlug(dto.getTitle());
         if (!post.getSlug().equals(newSlug) && repository.existsBySlug(newSlug)) {
             throw new ConflictException("Já existe uma postagem com este título.");
         }
 
-        post.setTitle(dto.getTitle());
+        post.setTitle(dto.getTitle().trim());
         post.setSlug(newSlug);
-        post.setSummary(dto.getSummary());
+        post.setSummary(dto.getSummary().trim());
         post.setContent(dto.getContent());
-        post.setCoverImageUrl(dto.getCoverImageUrl());
-        post.setCategory(dto.getCategory());
+        post.setCoverImageUrl(normalizeOptional(dto.getCoverImageUrl()));
+        post.setCategory(normalizeOptional(dto.getCategory()));
 
-        if (dto.getStatus() != null) {
+        if (dto.getStatus() != null && dto.getStatus() != post.getStatus()) {
+            if (dto.getStatus() == PostStatus.DRAFT) {
+                throw new ConflictException(
+                        "Uma postagem publicada ou oculta não pode voltar a rascunho."
+                );
+            }
             if (dto.getStatus() == PostStatus.UNPUBLISHED && post.getStatus() != PostStatus.PUBLISHED) {
                 throw new ConflictException("Apenas postagens publicadas podem ser desativadas.");
             }
-            if (post.getStatus() == PostStatus.DRAFT && dto.getStatus() == PostStatus.PUBLISHED) {
+            if (dto.getStatus() == PostStatus.PUBLISHED && post.getPublishedAt() == null) {
                 post.setPublishedAt(LocalDateTime.now());
             }
             post.setStatus(dto.getStatus());
@@ -106,8 +125,16 @@ public class BlogPostService {
         BlogPost post = repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Postagem não encontrada"));
 
+        if (newStatus == PostStatus.DRAFT) {
+            throw new ConflictException("A alteração para rascunho não é permitida.");
+        }
+
         if (newStatus == PostStatus.UNPUBLISHED && post.getStatus() != PostStatus.PUBLISHED) {
             throw new ConflictException("Apenas postagens publicadas podem ser desativadas.");
+        }
+
+        if (post.getStatus() == PostStatus.PUBLISHED && newStatus == PostStatus.PUBLISHED) {
+            throw new ConflictException("Esta postagem já encontra-se publicada.");
         }
 
         if (post.getStatus() == PostStatus.DRAFT && newStatus == PostStatus.PUBLISHED) {
@@ -128,6 +155,7 @@ public class BlogPostService {
 
     @Transactional(readOnly = true)
     public Page<BlogPostCardResponseDTO> listPublicPosts(String search, String category, Pageable pageable) {
+        validateSort(pageable, PUBLIC_SORT_FIELDS);
         String safeSearch = (search == null) ? "" : search;
         String safeCategory = (category == null) ? "" : category;
         return repository.findPublicPosts(PostStatus.PUBLISHED, safeSearch, safeCategory, pageable)
@@ -154,8 +182,13 @@ public class BlogPostService {
         dto.setStatus(entity.getStatus());
         dto.setPublishedAt(entity.getPublishedAt());
         dto.setCreatedAt(entity.getCreatedAt());
-        dto.setUpdatedAt(entity.getUpdatedAt());
+        dto.setUpdatedAt(entity.getUpdatedAt() != null ? entity.getUpdatedAt() : entity.getCreatedAt());
+        dto.setVersion(entity.getVersion());
         return dto;
+    }
+
+    private String normalizeOptional(String value) {
+        return value == null || value.isBlank() ? null : value.trim();
     }
 
     private BlogPostCardResponseDTO mapToCardResponseDTO(BlogPost entity) {
@@ -169,5 +202,13 @@ public class BlogPostService {
         dto.setCategory(entity.getCategory());
         dto.setPublishedAt(entity.getPublishedAt());
         return dto;
+    }
+
+    private void validateSort(Pageable pageable, Set<String> allowedFields) {
+        boolean invalid = pageable.getSort().stream()
+                .anyMatch(order -> !allowedFields.contains(order.getProperty()));
+        if (invalid) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Campo de ordenação inválido.");
+        }
     }
 }

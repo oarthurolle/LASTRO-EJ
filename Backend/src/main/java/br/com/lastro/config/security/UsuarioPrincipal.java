@@ -6,6 +6,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
+import java.util.List;
 
 public class UsuarioPrincipal implements UserDetails {
 
@@ -36,6 +37,23 @@ public class UsuarioPrincipal implements UserDetails {
         userDto.setId(user.getId());
         userDto.setEmail(user.getEmail());
         userDto.setPresentationName(user.getPresentationName());
+        userDto.setApprovalStatus(user.getApprovalStatus().name());
+        userDto.setCreatedAt(user.getCreatedAt());
+        userDto.setRoles(user.getRoles() == null
+                ? List.of()
+                : user.getRoles().stream()
+                        .map(role -> role.getName())
+                        .sorted()
+                        .toList());
+        userDto.setPrivileges(user.getRoles() == null
+                ? List.of()
+                : user.getRoles().stream()
+                        .filter(role -> role.getPrivileges() != null)
+                        .flatMap(role -> role.getPrivileges().stream())
+                        .map(privilege -> privilege.getName())
+                        .distinct()
+                        .sorted()
+                        .toList());
 
         return userDto;
     }

@@ -25,196 +25,397 @@ Essa ordem não autoriza resolver contradições silenciosamente. Quando os docu
 
 ## 2. Metodologia: Spec-Driven Development
 
-Este projeto adota **Spec-Driven Development (SDD)**. A implementação deve ser consequência de uma especificação escrita, revisada e rastreável — não o ponto de partida para definir o comportamento do sistema.
+Este projeto adota **Spec-Driven Development (SDD)**. A implementação deve ser consequência de uma especificação escrita, revisada, aprovada e rastreável — nunca o ponto de partida para definir o comportamento do sistema.
 
-O objetivo da metodologia é reduzir ambiguidades, impedir alterações acidentais de escopo e manter uma cadeia verificável entre requisito, decisão técnica, tarefa, código e evidência de validação.
+O objetivo é reduzir ambiguidades, impedir alterações acidentais de escopo e manter uma cadeia verificável entre necessidade, requisito, decisão técnica, tarefa, código e evidência de validação.
 
-O fluxo oficial é:
+O fluxo obrigatório é:
 
 ```text
-Especificação -> Plano técnico -> Tarefas -> Implementação -> Relatório
+Descoberta da feature
+    -> SPEC
+    -> aprovação explícita da SPEC
+    -> PLAN técnico
+    -> aprovação explícita do PLAN
+    -> TASKS
+    -> aprovação da lista de TASKS
+    -> execução de uma TASK por vez
+    -> validação do desenvolvedor
+    -> relatório e encerramento
 ```
 
-Cada etapa deve derivar da anterior. Um artefato posterior não pode ampliar, reinterpretar ou contradizer silenciosamente o artefato que lhe deu origem.
+Os três artefatos centrais do fluxo são, portanto:
 
-### 2.1 Estrutura documental
+```text
+SPECS -> PLANS -> TASKS
+```
+
+Cada etapa deve derivar exclusivamente da anterior. Um artefato posterior não pode ampliar, reinterpretar ou contradizer silenciosamente o artefato que lhe deu origem.
+
+> **Gate obrigatório:** o agente deve parar ao final de cada etapa e aguardar aprovação explícita do desenvolvedor. Silêncio, ausência de objeção, início de outra mensagem ou inferência do agente não contam como aprovação.
+
+### 2.1 Princípios operacionais do SDD
+
+1. **Nenhum código antes da documentação aprovada.** Mudanças de comportamento exigem SPEC, PLAN e TASKS aprovados.
+2. **Uma etapa por vez.** Durante a elaboração da SPEC, o agente não deve adiantar o PLAN, as TASKS ou a implementação.
+3. **Aprovação explícita.** O avanço deve ocorrer somente após uma resposta inequívoca, como `SPEC APROVADA`, `PLAN APROVADO`, `TASKS APROVADAS` ou autorização equivalente.
+4. **Uma task por vez.** O agente não deve iniciar a próxima task até apresentar a evidência da task atual e receber validação do desenvolvedor.
+5. **Rastreabilidade completa.** Requisito, critério de aceite, decisão técnica, task, teste e alteração de código devem poder ser relacionados.
+6. **Sem decisões silenciosas.** Lacunas que afetem contrato, segurança, persistência, integração ou critérios de aceite devem ser registradas e submetidas ao desenvolvedor.
+7. **Menor mudança suficiente.** A implementação deve concluir somente o escopo aprovado, sem refatorações oportunistas ou funcionalidades adicionais.
+8. **Evidência acima de afirmação.** Uma task não está concluída apenas porque o agente declarou sucesso; é necessário apresentar diff resumido, testes e resultados verificáveis.
+
+### 2.2 Estrutura documental
 
 A documentação operacional do projeto está organizada assim:
 
 ```text
 docs/
 ├── specs/
-├── technical-plans/
+├── plans/
 ├── tasks/
 └── reports/
 ```
 
-Use o mesmo identificador e nome de feature em todas as pastas para manter a rastreabilidade:
+Use o mesmo identificador e nome de feature em todas as pastas:
 
 ```text
 docs/specs/001-blog.md
-docs/technical-plans/001-blog-plan.md
+docs/plans/001-blog-plan.md
 docs/tasks/001-blog-tasks.md
 docs/reports/001-blog-report.md
 ```
 
 Não crie nomes desconectados, como `blog-v2.md`, `plano-posts.md` e `tarefas-cms.md`, para documentos pertencentes à mesma entrega.
 
-### 2.2 Responsabilidade de cada artefato
+O identificador deve ser estável. Mudanças posteriores na mesma feature devem atualizar os artefatos existentes ou criar uma nova feature formalmente relacionada, sem sobrescrever o histórico de decisões.
+
+### 2.3 Metadados e estados obrigatórios
+
+Todo artefato deve começar com metadados equivalentes a:
+
+```yaml
+id: 001-blog
+title: Blog institucional
+status: DRAFT
+owner: <nome ou equipe>
+approved_by: null
+approved_at: null
+last_updated: 2026-07-29
+source_documents:
+  - Contrato_API_LASTRO.pdf
+  - Especificação_Entidades_LASTRO.pdf
+  - Requisitos_LASTRO.pdf
+```
+
+Estados permitidos:
+
+| Artefato | Estados permitidos |
+|---|---|
+| SPEC | `DRAFT`, `IN_REVIEW`, `APPROVED`, `BLOCKED`, `SUPERSEDED` |
+| PLAN | `DRAFT`, `IN_REVIEW`, `APPROVED`, `BLOCKED`, `SUPERSEDED` |
+| TASKS | `DRAFT`, `IN_REVIEW`, `APPROVED`, `BLOCKED`, `SUPERSEDED` |
+| Task individual | `TODO`, `IN_PROGRESS`, `AWAITING_VALIDATION`, `DONE`, `BLOCKED` |
+| Relatório | `PARTIAL`, `COMPLETED`, `BLOCKED` |
+
+Regras de estado:
+
+- somente uma pessoa desenvolvedora ou responsável autorizado pode registrar `APPROVED`;
+- o agente pode propor a alteração de estado, mas não deve se autoaprovar;
+- uma task só recebe `DONE` depois da validação explícita do desenvolvedor;
+- quando um artefato aprovado mudar materialmente, ele volta para `IN_REVIEW` e os artefatos descendentes afetados ficam bloqueados até nova aprovação;
+- `IMPLEMENTED` não é estado de aprovação documental e não substitui validação.
+
+### 2.4 Responsabilidade de cada artefato
 
 #### `docs/specs/`
 
-Define **o que deve ser construído e por quê**.
+Define **o que deve ser construído, por que deve existir e como o comportamento será aceito**.
 
-Uma spec deve conter, conforme aplicável:
+A SPEC deve conter, conforme aplicável:
 
-- objetivo e contexto da feature;
-- escopo e itens explicitamente fora do escopo;
-- comportamento funcional e regras de negócio;
-- atores, permissões e restrições;
-- dados de entrada e saída relevantes;
-- contratos HTTP afetados;
-- cenários de sucesso, validação e erro;
-- critérios de aceite verificáveis;
-- dependências e perguntas em aberto.
+- problema, objetivo e valor esperado;
+- contexto fornecido pelo solicitante;
+- atores, jornadas e permissões;
+- escopo funcional;
+- itens explicitamente fora do escopo;
+- regras de negócio e invariantes;
+- entradas, saídas e contratos externos relevantes;
+- cenários de sucesso, validação, erro e borda;
+- requisitos não funcionais aplicáveis;
+- critérios de aceite objetivos, numerados e verificáveis;
+- dependências, riscos funcionais e perguntas em aberto;
+- suposições propostas, claramente marcadas como não aprovadas;
+- relação com os documentos normativos.
 
-A spec não deve escolher classes, pacotes, repositories ou detalhes internos apenas por preferência. Detalhes técnicos entram na spec somente quando já forem uma restrição aprovada do projeto ou parte do contrato externo.
+A SPEC não deve escolher classes, pacotes, repositories ou detalhes internos por preferência. Detalhes técnicos entram na SPEC somente quando forem restrições aprovadas ou parte de contrato externo.
 
-#### `docs/technical-plans/`
+Ao receber a explicação de uma feature, o agente deve primeiro transformar a intenção em uma SPEC `DRAFT`. Caso faltem informações materiais, deve registrar perguntas em aberto e manter a SPEC como `BLOCKED` ou `IN_REVIEW`; não deve preencher as lacunas por suposição.
 
-Define **como uma spec aprovada será implementada no repositório atual**.
+#### `docs/plans/`
 
-Um plano técnico deve conter, conforme aplicável:
+Define **como uma SPEC aprovada será implementada no repositório real**.
 
-- referência explícita à spec de origem;
-- análise dos padrões e componentes já existentes no template;
+O PLAN deve conter, conforme aplicável:
+
+- referência explícita à versão aprovada da SPEC;
+- confirmação de que a SPEC está `APPROVED`;
+- levantamento do código, padrões e infraestrutura existentes;
 - arquivos, módulos e camadas afetados;
 - modelo de dados, DTOs, mapeamentos e migrations;
 - endpoints e compatibilidade com o contrato;
 - autenticação, autorização e privilégios;
-- validações e tratamento de erros;
-- estratégia de testes;
-- riscos, dependências e decisões técnicas;
-- ordem recomendada de implementação.
+- validações, erros, observabilidade e logs;
+- estratégia de testes por camada;
+- riscos técnicos, dependências e plano de mitigação;
+- compatibilidade, rollback e migração quando aplicável;
+- decisões técnicas e alternativas descartadas;
+- ordem recomendada de execução;
+- mapeamento de cada decisão para os critérios de aceite da SPEC.
 
-O plano deve respeitar integralmente o escopo da spec. Se o plano revelar que a spec é inviável, ambígua ou incompleta, atualize e reaprove a spec antes de implementar.
+O PLAN deve ser baseado em inspeção do repositório. Não proponha arquivos, frameworks, dependências ou padrões sem verificar o que já existe.
+
+Se o PLAN revelar que a SPEC é inviável, ambígua ou incompleta, interrompa o planejamento, devolva a SPEC para revisão e aguarde nova aprovação.
 
 #### `docs/tasks/`
 
-Converte o plano técnico em **unidades pequenas, ordenadas e verificáveis de trabalho**.
+Converte o PLAN aprovado em **unidades pequenas, ordenadas, isoláveis e verificáveis de trabalho**.
 
-As tarefas devem:
-
-- derivar de um plano técnico identificado;
-- possuir resultado observável;
-- ser pequenas o suficiente para revisão e validação isoladas;
-- indicar dependências quando a ordem importar;
-- incluir implementação, testes, migrations e documentação necessários;
-- apontar, quando útil, qual critério de aceite ajudam a satisfazer.
-
-Use checkboxes para representar o estado real:
+Cada task deve conter:
 
 ```markdown
-- [ ] Criar migration da tabela `blog_posts`
-- [ ] Implementar geração e unicidade de slug
-- [ ] Criar teste que impede rascunhos na API pública
+### TASK-001 — Criar migration de blog_posts
+
+Status: TODO
+Origem: PLAN seção 4.1
+Critérios de aceite relacionados: AC-01, AC-03
+Dependências: nenhuma
+
+Objetivo:
+- Criar a estrutura persistente aprovada para BlogPost.
+
+Escopo permitido:
+- arquivos esperados ou áreas do projeto que podem ser alteradas.
+
+Fora do escopo:
+- alterações que devem permanecer para tasks posteriores.
+
+Validação obrigatória:
+- comando de teste ou verificação;
+- resultado observável esperado;
+- revisão do diff.
+
+Evidências:
+- preenchidas somente após a execução.
 ```
 
-Não use tarefas vagas como “fazer o blog”, “criar o backend” ou “implementar segurança”. Uma tarefa só deve ser marcada como concluída quando seu código, testes e validações aplicáveis estiverem completos.
+As tasks devem:
+
+- derivar de um PLAN identificado e aprovado;
+- possuir resultado observável;
+- ser pequenas o suficiente para revisão isolada;
+- indicar dependências e ordem de execução;
+- incluir código, testes, migrations e documentação necessários;
+- mapear os critérios de aceite que ajudam a satisfazer;
+- declarar limites para evitar mudanças colaterais;
+- possuir validação objetiva.
+
+Não use tasks vagas como “fazer o blog”, “criar o backend” ou “implementar segurança”.
 
 #### `docs/reports/`
 
-Registra **o que foi efetivamente implementado e validado**.
+Registra **o que foi efetivamente implementado, testado, validado ou bloqueado**.
 
-Um relatório deve conter, conforme aplicável:
+O relatório deve conter, conforme aplicável:
 
 - status da entrega: concluída, parcial ou bloqueada;
-- itens implementados e itens não implementados;
-- critérios de aceite validados;
-- testes e comandos executados, com seus resultados;
+- versões aprovadas da SPEC, do PLAN e das TASKS;
+- tasks concluídas, pendentes e bloqueadas;
+- critérios de aceite validados e respectivas evidências;
+- testes e comandos executados, com resultados;
 - migrations e mudanças de banco realizadas;
-- desvios em relação ao plano e respectivas aprovações;
+- desvios em relação ao PLAN e respectivas aprovações;
 - limitações, débitos técnicos e pendências;
-- impacto ou ação necessária para o frontend.
+- impacto ou ação necessária para o frontend;
+- confirmação da revisão final do diff.
 
 Relatórios são evidências da execução. Eles não alteram requisitos, contratos ou decisões por conta própria.
 
-### 2.3 Hierarquia e rastreabilidade
+### 2.5 Hierarquia e rastreabilidade
 
-A cadeia de autoridade do projeto é:
+A cadeia de autoridade é:
 
 1. documentos normativos fornecidos pela liderança;
-2. spec aprovada da feature;
-3. plano técnico aprovado ou revisado pela equipe;
-4. lista de tarefas derivada do plano;
-5. código, testes e migrations;
-6. relatório de implementação e verificação.
+2. SPEC aprovada da feature;
+3. PLAN técnico aprovado;
+4. lista de TASKS aprovada;
+5. autorização para executar a task atual;
+6. código, testes e migrations da task;
+7. validação explícita do desenvolvedor;
+8. relatório de implementação e verificação.
 
-Uma spec do repositório pode detalhar e tornar testável um requisito, mas não pode contradizer os documentos normativos sem uma decisão formal registrada.
+Uma SPEC pode detalhar e tornar testável um requisito, mas não pode contradizer os documentos normativos sem decisão formal registrada.
 
-Cada artefato deve referenciar os documentos relacionados. Exemplo:
+Cada artefato deve referenciar os relacionados:
 
 ```markdown
-Spec: `docs/specs/001-blog.md`
-Plano: `docs/technical-plans/001-blog-plan.md`
-Tarefas: `docs/tasks/001-blog-tasks.md`
-Relatório: `docs/reports/001-blog-report.md`
+Spec: `docs/specs/001-blog.md` — versão 1.0 — APPROVED
+Plan: `docs/plans/001-blog-plan.md` — versão 1.0 — APPROVED
+Tasks: `docs/tasks/001-blog-tasks.md` — versão 1.0 — APPROVED
+Report: `docs/reports/001-blog-report.md`
 ```
 
-Quando aplicável, informe no início do documento:
+Os critérios de aceite devem usar identificadores estáveis, como `AC-01`, e as tasks, testes e evidências devem citar esses identificadores.
+
+### 2.6 Gates de aprovação
+
+#### Gate 0 — Entrada e descoberta
+
+O desenvolvedor explica a feature. O agente deve:
+
+1. resumir o entendimento;
+2. separar fatos fornecidos, restrições normativas e suposições;
+3. identificar perguntas que alteram contrato, persistência, segurança, UX ou aceite;
+4. criar ou atualizar apenas a SPEC;
+5. apresentar a SPEC para revisão.
+
+**Saída permitida:** SPEC `DRAFT`, `IN_REVIEW` ou `BLOCKED`.
+
+**Proibido neste gate:** criar PLAN, criar TASKS ou alterar código.
+
+#### Gate 1 — Aprovação da SPEC
+
+Só avance quando:
+
+- todos os critérios de aceite forem verificáveis;
+- não houver pergunta bloqueante;
+- contratos e permissões estiverem definidos;
+- o desenvolvedor registrar aprovação explícita.
+
+Após a aprovação, atualize os metadados da SPEC para `APPROVED`, com responsável e data.
+
+#### Gate 2 — PLAN técnico
+
+Com a SPEC aprovada, o agente deve inspecionar o repositório e produzir apenas o PLAN técnico.
+
+**Proibido neste gate:** criar ou implementar TASKS antes da revisão do PLAN.
+
+Só avance após aprovação explícita do PLAN.
+
+#### Gate 3 — TASKS
+
+Com o PLAN aprovado, o agente deve criar a lista ordenada de TASKS e seu mapeamento com critérios de aceite.
+
+A lista deve ser revisada antes da implementação para confirmar tamanho, ordem, dependências e validações.
+
+Só avance após aprovação explícita das TASKS.
+
+#### Gate 4 — Execução controlada
+
+Para cada task:
+
+1. selecionar somente a próxima task `TODO` cujas dependências estejam concluídas;
+2. apresentar objetivo, escopo, arquivos prováveis e validações;
+3. aguardar autorização do desenvolvedor para iniciar;
+4. mudar a task para `IN_PROGRESS`;
+5. implementar apenas o escopo da task;
+6. executar testes e verificações aplicáveis;
+7. revisar o diff;
+8. registrar evidências;
+9. mudar a task para `AWAITING_VALIDATION`;
+10. apresentar o resultado ao desenvolvedor;
+11. aguardar validação explícita;
+12. somente então marcar `DONE` e propor a próxima task.
+
+Não execute duas tasks em paralelo ou em lote, salvo autorização explícita que identifique exatamente quais tasks podem ser agrupadas.
+
+#### Gate 5 — Encerramento
+
+A feature só pode ser encerrada quando:
+
+- todas as tasks obrigatórias estiverem `DONE`;
+- todos os critérios de aceite tiverem evidência;
+- o build e a suíte de testes aplicável estiverem aprovados;
+- o relatório final estiver atualizado;
+- divergências, débitos e impactos no frontend estiverem registrados;
+- o desenvolvedor aceitar o encerramento.
+
+### 2.7 Protocolo de comunicação do agente
+
+Ao final de cada etapa, o agente deve informar claramente:
+
+- artefato criado ou alterado;
+- status atual;
+- decisões tomadas;
+- perguntas ou riscos pendentes;
+- ação humana necessária para avançar.
+
+Use chamadas inequívocas, por exemplo:
 
 ```text
-Status: DRAFT | IN_REVIEW | APPROVED | IMPLEMENTED | BLOCKED
-Responsável: <nome ou equipe>
-Última atualização: <AAAA-MM-DD>
+Aguardando aprovação da SPEC. Nenhum PLAN ou código será produzido antes dessa aprovação.
 ```
 
-`IMPLEMENTED` não significa necessariamente validado; a conclusão da feature depende também dos critérios da Definition of Done.
+```text
+Aguardando validação da TASK-003. A próxima task ainda não foi iniciada.
+```
 
-### 2.4 Ciclo de desenvolvimento
+A autorização para avançar vale apenas para a etapa ou task mencionada. Não reutilize uma aprovação anterior para mudanças posteriores.
 
-Siga esta ordem para cada feature ou alteração relevante:
-
-1. Criar ou atualizar a spec.
-2. Identificar e registrar perguntas em aberto.
-3. Resolver decisões bloqueantes e aprovar a spec.
-4. Inspecionar o código existente e produzir o plano técnico.
-5. Revisar impactos em contrato, segurança, dados e integrações.
-6. Derivar tarefas pequenas e ordenadas do plano.
-7. Implementar uma tarefa ou grupo coerente de tarefas por vez.
-8. Adicionar e executar os testes aplicáveis.
-9. Validar todos os critérios de aceite da spec.
-10. Produzir ou atualizar o relatório com evidências e pendências.
-
-Não inicie implementação quando não houver spec para uma mudança de comportamento ou quando existir uma pergunta em aberto que altere contrato, persistência, segurança ou critério de aceite.
-
-### 2.5 Controle de mudanças
+### 2.8 Controle de mudanças
 
 Quando surgir uma alteração de requisito durante o desenvolvimento:
 
-1. atualize primeiro a spec;
-2. obtenha o alinhamento necessário, especialmente quando houver impacto no frontend;
-3. atualize o plano técnico afetado;
-4. revise ou crie as tarefas correspondentes;
-5. somente então altere o código.
+1. pause a task atual em um ponto seguro;
+2. registre o impacto e a origem da mudança;
+3. atualize primeiro a SPEC;
+4. obtenha nova aprovação da SPEC;
+5. atualize e reaprove o PLAN afetado;
+6. revise e reaprove as TASKS afetadas;
+7. retome a implementação somente após os gates necessários.
 
-Não modifique a spec retroativamente apenas para justificar uma implementação já realizada. Se o código divergir do plano ou da spec, trate a situação como desvio: interrompa a conclusão, registre o motivo e obtenha uma decisão.
+Não modifique a SPEC retroativamente apenas para justificar código já escrito. Se o código divergir do PLAN ou da SPEC, trate como desvio, interrompa a conclusão, registre o motivo e obtenha decisão humana.
 
-Correções internas que não alterem comportamento contratado podem dispensar uma nova spec, mas ainda devem respeitar os documentos existentes e receber testes proporcionais ao risco. Se houver dúvida sobre impacto externo, trate a mudança como alteração de comportamento.
+Correções internas que comprovadamente não alterem comportamento contratado podem dispensar uma nova SPEC. Ainda assim, devem ser rastreadas, ter escopo explícito e receber testes proporcionais ao risco. Na dúvida, trate como mudança de comportamento.
 
-### 2.6 Definition of Ready
+### 2.9 Definition of Ready por etapa
 
-Uma feature está pronta para implementação quando:
+#### SPEC pronta para aprovação
 
-- possui spec identificada e suficientemente detalhada;
-- os critérios de aceite são objetivos e verificáveis;
-- não há decisão bloqueante em aberto;
-- qualquer mudança de API foi alinhada com o frontend;
-- permissões e regras de exposição pública estão definidas;
-- o plano técnico considera o código e a infraestrutura existentes;
-- as tarefas iniciais foram derivadas do plano.
+- objetivo e problema estão claros;
+- escopo e fora do escopo estão explícitos;
+- regras e contratos afetados estão identificados;
+- critérios de aceite são objetivos e verificáveis;
+- não há pergunta bloqueante sem dono ou decisão;
+- dependências e riscos relevantes estão registrados.
 
-Se algum desses pontos estiver ausente, o agente deve trabalhar na documentação ou solicitar alinhamento, em vez de preencher lacunas por suposição.
+#### PLAN pronto para aprovação
+
+- referencia uma SPEC aprovada e sua versão;
+- foi produzido após inspeção do repositório;
+- descreve impactos em dados, API, segurança, testes e integrações;
+- não amplia o escopo da SPEC;
+- possui riscos, alternativas e ordem de implementação;
+- permite derivar tasks sem novas decisões estruturais.
+
+#### TASKS prontas para aprovação
+
+- todas derivam do PLAN aprovado;
+- são pequenas, ordenadas e verificáveis;
+- possuem dependências e critérios de aceite relacionados;
+- incluem testes, migrations e documentação necessários;
+- cada task possui limite de escopo e forma de validação;
+- a conclusão de todas cobre integralmente o PLAN.
+
+#### Task pronta para iniciar
+
+- está `TODO`;
+- suas dependências estão `DONE`;
+- o desenvolvedor autorizou sua execução;
+- não existe bloqueio conhecido;
+- o estado do repositório é compatível com o início da task.
+
+Se qualquer requisito de Ready estiver ausente, o agente deve trabalhar no artefato correspondente ou solicitar decisão, em vez de preencher lacunas por suposição.
 
 ## 3. Contexto do projeto
 
@@ -665,44 +866,118 @@ Não implemente sem solicitação formal:
 
 ## 14. Fluxo de trabalho para agentes de IA
 
-Ao receber uma tarefa neste repositório:
+Ao receber uma solicitação neste repositório, determine primeiro em qual estágio SDD a feature se encontra. Não presuma que a solicitação para “implementar” autoriza ignorar os gates documentais.
 
-1. Leia este arquivo e identifique o módulo afetado.
-2. Consulte os documentos normativos relacionados à mudança.
-3. Localize a spec correspondente em `docs/specs/`. Se a tarefa alterar comportamento e não houver spec adequada, não comece pelo código.
-4. Verifique o status da spec, seus critérios de aceite e perguntas em aberto. Confirme se existe alguma pendência bloqueante na seção 15.
-5. Leia o plano correspondente em `docs/technical-plans/` e as tarefas em `docs/tasks/`. Quando esses artefatos forem necessários e ainda não existirem, produza-os antes da implementação.
-6. Inspecione o código existente antes de propor classes, pacotes ou dependências.
-7. Localize padrões equivalentes no template: controller, DTO, mapper, service, repository, validação, security e exception handler.
-8. Relacione a tarefa atual aos requisitos, contratos e critérios de aceite afetados.
-9. Implemente a menor alteração que conclua a tarefa sem ampliar o escopo da spec.
-10. Adicione ou atualize testes e execute os comandos de build e teste detectados no repositório.
-11. Marque uma tarefa como concluída somente depois de validar seu resultado e revise o diff para evitar alterações acidentais na autenticação ou no contrato.
-12. Atualize o relatório correspondente em `docs/reports/` quando a entrega produzir evidência relevante, desvio, bloqueio ou conclusão de feature.
-13. Registre qualquer decisão nova que precise ser aprovada ou compartilhada com o frontend.
+### 14.1 Quando o desenvolvedor explicar uma nova feature
 
-### 14.1 O que o agente não deve fazer
+1. Leia este arquivo e os documentos normativos aplicáveis.
+2. Registre o entendimento da feature sem adicionar comportamento não solicitado.
+3. Identifique decisões bloqueantes e perguntas em aberto.
+4. Crie ou atualize `docs/specs/<id>-<feature>.md`.
+5. Numere os critérios de aceite como `AC-01`, `AC-02` e assim por diante.
+6. Apresente a SPEC e pare.
+7. Aguarde aprovação explícita antes de inspecionar soluções técnicas ou criar o PLAN.
+
+### 14.2 Quando a SPEC estiver aprovada
+
+1. Confirme status, versão, aprovador e data da SPEC.
+2. Inspecione o repositório, o gerenciador de build e os padrões do template.
+3. Localize implementações equivalentes antes de propor novas estruturas.
+4. Crie ou atualize o PLAN correspondente.
+5. Relacione decisões técnicas aos critérios de aceite.
+6. Apresente riscos, alternativas e impacto no frontend.
+7. Pare e aguarde aprovação explícita do PLAN.
+
+### 14.3 Quando o PLAN estiver aprovado
+
+1. Confirme status, versão, aprovador e data do PLAN.
+2. Crie tasks pequenas, ordenadas e verificáveis.
+3. Inclua tasks específicas para migrations, segurança, testes e documentação quando aplicável.
+4. Relacione cada task aos critérios de aceite e às seções do PLAN.
+5. Apresente a lista completa para revisão.
+6. Pare e aguarde aprovação explícita das TASKS.
+
+### 14.4 Quando as TASKS estiverem aprovadas
+
+1. Escolha somente a próxima task elegível.
+2. Informe o que será alterado e como será validado.
+3. Aguarde autorização para iniciar a task.
+4. Implemente a menor alteração suficiente.
+5. Execute os testes aplicáveis e revise o diff.
+6. Atualize evidências e coloque a task em `AWAITING_VALIDATION`.
+7. Apresente o resultado sem iniciar a próxima task.
+8. Após validação explícita, marque a task como `DONE`.
+9. Repita o ciclo até o encerramento da feature.
+
+### 14.5 Validação constante do desenvolvedor
+
+A validação humana é obrigatória nos seguintes pontos:
+
+- aprovação da SPEC;
+- aprovação do PLAN;
+- aprovação da lista de TASKS;
+- autorização para iniciar cada task;
+- aceitação ou rejeição do resultado de cada task;
+- aprovação de qualquer desvio;
+- encerramento da feature.
+
+Caso o desenvolvedor rejeite uma task, mantenha-a em `IN_PROGRESS` ou `BLOCKED`, registre o feedback e corrija somente o que foi solicitado. Não avance para a task seguinte.
+
+### 14.6 O que o agente não deve fazer
 
 - Não inventar campos, enums, rotas, query parameters ou wrappers de resposta.
+- Não iniciar PLAN sem SPEC aprovada.
+- Não criar TASKS sem PLAN aprovado.
+- Não implementar sem TASKS aprovadas e autorização da task atual.
+- Não executar automaticamente a próxima task após concluir código.
+- Não marcar task como `DONE` sem validação explícita do desenvolvedor.
+- Não usar uma aprovação genérica para liberar múltiplos gates.
+- Não alterar artefatos aprovados silenciosamente.
 - Não renomear `clientName`, `serviceCategory`, `coverImageUrl`, `sortOrder` ou qualquer outro campo por preferência pessoal.
 - Não transformar `SiteIndicator.value` em número.
 - Não retornar rascunhos nas APIs públicas.
 - Não retornar parceiros inativos.
 - Não enviar e-mail de contato de forma síncrona contornando a fila Redis definida.
 - Não criar relacionamento das novas entidades com `User` sem mudança aprovada.
-- Não refatorar o template inteiro para concluir uma tarefa local.
-- Não afirmar que a tarefa está pronta sem executar os testes disponíveis.
+- Não refatorar o template inteiro para concluir uma task local.
+- Não afirmar que a task está pronta sem executar os testes disponíveis.
+- Não ocultar testes falhos, limitações, alterações colaterais ou divergências.
 
-### 14.2 Formato esperado ao concluir uma tarefa
+### 14.7 Formato esperado ao apresentar uma task para validação
 
 Informe:
 
-- o que foi alterado;
-- quais contratos e requisitos foram atendidos;
-- quais testes foram executados e seus resultados;
-- se houve migration ou mudança no banco;
-- se existe divergência ou decisão pendente;
-- qualquer impacto esperado no frontend.
+```text
+Task: TASK-XXX — <título>
+Status: AWAITING_VALIDATION
+
+Alterações realizadas:
+- ...
+
+Critérios de aceite cobertos:
+- AC-XX
+
+Arquivos alterados:
+- ...
+
+Testes e verificações:
+- comando: ...
+- resultado: ...
+
+Migration ou banco:
+- nenhuma | descrição
+
+Riscos, desvios ou pendências:
+- nenhuma | descrição
+
+Impacto no frontend:
+- nenhum | descrição
+
+Ação necessária:
+- validar, solicitar ajustes ou rejeitar a task.
+```
+
+Não apresente uma task como validada quando os testes não puderam ser executados. Nesse caso, informe precisamente o motivo e mantenha o status apropriado.
 
 ## 15. Divergências e lacunas conhecidas
 
@@ -841,22 +1116,46 @@ Essa ordem é uma sugestão de execução e não substitui o planejamento oficia
 
 Uma alteração só pode ser considerada concluída quando:
 
-- atende aos documentos normativos, à spec aprovada e a este arquivo;
-- mantém spec, plano técnico e tarefas coerentes com a implementação;
-- possui tarefas concluídas marcadas somente após validação;
-- mantém compatibilidade com o frontend;
-- possui validações de entrada;
-- aplica o privilégio correto;
+- atende aos documentos normativos, à SPEC aprovada e a este arquivo;
+- possui SPEC, PLAN e TASKS aprovados e coerentes com a implementação;
+- todas as tasks obrigatórias estão `DONE` após validação explícita do desenvolvedor;
+- cada critério de aceite possui evidência rastreável em testes, verificação manual ou ambos;
+- mantém compatibilidade com o frontend ou registra a aprovação da mudança de contrato;
+- possui validações de entrada e tratamento de erros adequados;
+- aplica autenticação e privilégio corretos;
 - usa o handler global de erros;
 - não expõe rascunhos, parceiros inativos, contatos ou dados sensíveis indevidamente;
 - possui testes automatizados proporcionais ao risco;
-- passa no build e nos testes do repositório;
+- passa no build e nos testes aplicáveis do repositório;
+- testes não executados, ignorados ou instáveis estão explicitamente registrados e aceitos;
 - inclui migration quando necessária e segue o mecanismo já adotado no projeto;
-- não introduz dependência ou escopo não aprovado;
-- registra divergências ainda abertas;
-- atualiza o relatório da feature ou entrega quando aplicável;
-- atualiza a documentação do contrato quando uma decisão formal mudar a API.
+- migrations foram verificadas quanto a compatibilidade, rollback ou estratégia de recuperação aplicável;
+- não introduz dependência, entidade, endpoint ou escopo não aprovado;
+- o diff final foi revisado para alterações acidentais, segredos e arquivos não relacionados;
+- logs não expõem segredos ou dados pessoais desnecessários;
+- divergências ainda abertas e débitos técnicos estão registrados com responsável ou decisão de acompanhamento;
+- o relatório final contém comandos, resultados, migrations, desvios e impacto no frontend;
+- a documentação do contrato foi atualizada quando uma decisão formal mudou a API;
+- o desenvolvedor aprovou o encerramento da feature.
+
+### 18.1 Checklist final de solidez
+
+Antes de solicitar o encerramento, confirme:
+
+```markdown
+- [ ] SPEC aprovada e sem perguntas bloqueantes
+- [ ] PLAN aprovado e compatível com o repositório
+- [ ] TASKS aprovadas, rastreáveis e todas validadas
+- [ ] Critérios de aceite integralmente cobertos
+- [ ] Build e testes executados com resultados registrados
+- [ ] Segurança e autorização revisadas
+- [ ] Contrato HTTP e compatibilidade com frontend revisados
+- [ ] Migrations e impacto em dados revisados
+- [ ] Diff final sem alterações fora do escopo
+- [ ] Relatório atualizado
+- [ ] Encerramento aprovado pelo desenvolvedor
+```
 
 ---
 
-**Resumo para agentes:** implemente apenas o que está contratado, reutilize o template, proteja as rotas administrativas por privilégio, filtre corretamente o conteúdo público, mantenha os payloads estáveis e solicite decisão humana diante das lacunas listadas.
+**Resumo para agentes:** transforme primeiro a explicação da feature em uma SPEC; pare e aguarde aprovação. Depois produza o PLAN técnico; pare e aguarde aprovação. Em seguida derive as TASKS; pare e aguarde aprovação. Implemente somente uma task autorizada por vez, apresente testes e evidências, aguarde validação do desenvolvedor e só então avance. Preserve o contrato, reutilize o template e nunca resolva lacunas materiais silenciosamente.

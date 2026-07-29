@@ -6,6 +6,7 @@ import br.com.lastro.dto.mfa.MfaDisableRequest;
 import br.com.lastro.dto.mfa.MfaSetupResponse;
 import br.com.lastro.dto.mfa.MfaVerifyRequest;
 import br.com.lastro.entity.User;
+import br.com.lastro.entity.UserApprovalStatus;
 import br.com.lastro.exception.exceptions.ApiException;
 import br.com.lastro.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -32,12 +33,14 @@ public class MfaService {
     private final RefreshTokenService refreshTokenService;
     private final MfaSecretProtectionService mfaSecretProtectionService;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final BruteforceProtectionService bruteforceProtectionService;
 
     @Value("${jwt.token.expires.in}")
     private Long expiresIn;
 
     @Transactional
     public MfaSetupResponse mfaSetupForUser(Long userId) {
+        requireProtectedMfaStorage();
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BadCredentialsException("Usuário não encontrado"));
 
@@ -61,6 +64,7 @@ public class MfaService {
 
     @Transactional
     public void confirmMfa(Long userId, String code) {
+        requireProtectedMfaStorage();
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BadCredentialsException("Usuário não encontrado"));
 
@@ -99,8 +103,14 @@ public class MfaService {
         }
 
         Long userId = Long.valueOf(jwt.getSubject());
+        String rateLimitKey = "mfa_verify:" + userId;
+        bruteforceProtectionService.assertNotBlocked(rateLimitKey);
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Token MFA inválido!"));
+
+        if (user.getApprovalStatus() != UserApprovalStatus.APPROVED || !user.isEmailVerified()) {
+            throw new ApiException(HttpStatus.UNAUTHORIZED, "Usuário sem acesso aprovado.");
+        }
 
         if (!user.isMfaEnabled()) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "MFA não habilitado!");
@@ -110,8 +120,10 @@ public class MfaService {
         migrateSecretIfNeeded(user);
 
         if (!mfaTokenManager.verifyTotp(req.getMfaCode(), rawSecret)) {
+            bruteforceProtectionService.onLoginFailure(rateLimitKey);
             throw new ApiException(HttpStatus.BAD_REQUEST, "Código MFA inválido!");
         }
+        bruteforceProtectionService.onLoginSuccess(rateLimitKey);
 
         // emite JWT final
         var jwtFinal = acessTokenService.getAcessToken(user, true);
@@ -163,5 +175,14 @@ public class MfaService {
         }
 
         user.setSecret(mfaSecretProtectionService.protect(user.getSecret()));
+    }
+
+    private void requireProtectedMfaStorage() {
+        if (!mfaSecretProtectionService.isProtectionEnabled()) {
+            throw new ApiException(
+                    HttpStatus.SERVICE_UNAVAILABLE,
+                    "O MFA está indisponível até que a chave de criptografia seja configurada."
+            );
+        }
     }
 }

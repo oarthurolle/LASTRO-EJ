@@ -7,6 +7,8 @@ import br.com.lastro.email.service.ApplicationEmailService;
 import br.com.lastro.entity.EmailTokenType;
 import br.com.lastro.entity.Role;
 import br.com.lastro.entity.User;
+import br.com.lastro.entity.UserApprovalStatus;
+import br.com.lastro.exception.exceptions.ApiException;
 import br.com.lastro.exception.exceptions.EmailNotVerifiedException;
 import br.com.lastro.repository.RoleRepository;
 import br.com.lastro.repository.UserRepository;
@@ -34,7 +36,7 @@ import static org.mockito.Mockito.when;
 class AuthServiceTest {
 
     @Test
-    void registerShouldCreateUnverifiedUserAndQueueVerificationEmail() {
+    void registerShouldCreatePendingUserWithoutEmailVerification() {
         JwtEncoder jwtEncoder = mock(JwtEncoder.class);
         UserRepository userRepository = mock(UserRepository.class);
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
@@ -64,7 +66,6 @@ class AuthServiceTest {
 
         when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.empty());
         when(roleRepository.findByName("BASIC")).thenReturn(Optional.of(basicRole));
-        when(emailTokenService.create(any(User.class), any(EmailTokenType.class), any(Duration.class))).thenReturn("token");
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
             User user = invocation.getArgument(0);
             user.setId(10L);
@@ -72,18 +73,70 @@ class AuthServiceTest {
         });
 
         RegisterRequest registerRequest = new RegisterRequest();
+        registerRequest.setPresentationName("Usuário Teste");
         registerRequest.setEmail("user@example.com");
         registerRequest.setPassword("senha123");
 
         var response = authService.register(registerRequest);
 
-        assertTrue(response.isVerificationRequired());
+        assertTrue(response.isApprovalRequired());
+        assertTrue(!response.isVerificationRequired());
         assertEquals("user@example.com", response.getEmail());
 
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
         verify(userRepository).save(userCaptor.capture());
-        assertTrue(!userCaptor.getValue().isEmailVerified());
-        verify(applicationEmailService).sendEmailVerification(userCaptor.getValue(), "token");
+        assertTrue(userCaptor.getValue().isEmailVerified());
+        assertEquals(UserApprovalStatus.PENDING, userCaptor.getValue().getApprovalStatus());
+        assertEquals("Usuário Teste", userCaptor.getValue().getPresentationName());
+        verify(emailTokenService, never()).create(any(User.class), any(EmailTokenType.class), any(Duration.class));
+        verify(applicationEmailService, never()).sendEmailVerification(any(User.class), anyString());
+    }
+
+    @Test
+    void loginShouldRejectPendingUsers() {
+        JwtEncoder jwtEncoder = mock(JwtEncoder.class);
+        UserRepository userRepository = mock(UserRepository.class);
+        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+        RoleRepository roleRepository = mock(RoleRepository.class);
+        AcessTokenService acessTokenService = mock(AcessTokenService.class);
+        RefreshTokenService refreshTokenService = mock(RefreshTokenService.class);
+        EmailTokenService emailTokenService = mock(EmailTokenService.class);
+        ApplicationEmailService applicationEmailService = mock(ApplicationEmailService.class);
+        BruteforceProtectionService bruteforceProtectionService = mock(BruteforceProtectionService.class);
+        HttpServletRequest request = mock(HttpServletRequest.class);
+
+        AuthService authService = new AuthService(
+                jwtEncoder,
+                userRepository,
+                passwordEncoder,
+                roleRepository,
+                acessTokenService,
+                refreshTokenService,
+                emailTokenService,
+                applicationEmailService,
+                bruteforceProtectionService,
+                request
+        );
+
+        User user = new User();
+        user.setId(1L);
+        user.setEmail("pending@example.com");
+        user.setPassword(passwordEncoder.encode("senha123"));
+        user.setRoles(Set.of());
+        user.setEmailVerified(true);
+        user.setApprovalStatus(UserApprovalStatus.PENDING);
+
+        when(userRepository.findByEmail("pending@example.com")).thenReturn(Optional.of(user));
+        when(request.getRemoteAddr()).thenReturn("127.0.0.1");
+
+        LoginRequest loginRequest = new LoginRequest();
+        loginRequest.setEmail("pending@example.com");
+        loginRequest.setPassword("senha123");
+
+        ApiException exception = assertThrows(ApiException.class, () -> authService.login(loginRequest));
+        assertEquals(403, exception.getStatus().value());
+        assertTrue(exception.getMessage().contains("aguarda aprovação"));
+        verify(acessTokenService, never()).getAcessToken(any(User.class), any(Boolean.class));
     }
 
     @Test
@@ -118,6 +171,7 @@ class AuthServiceTest {
         user.setPassword(passwordEncoder.encode("senha123"));
         user.setRoles(Set.of());
         user.setEmailVerified(false);
+        user.setApprovalStatus(UserApprovalStatus.APPROVED);
 
         when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(user));
         when(request.getRemoteAddr()).thenReturn("127.0.0.1");

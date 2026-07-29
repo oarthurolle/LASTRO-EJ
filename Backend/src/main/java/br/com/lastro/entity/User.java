@@ -59,6 +59,10 @@ public class User implements Serializable {
     @Column(name = "email_verified", nullable = false)
     private boolean emailVerified;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "approval_status", nullable = false, length = 20)
+    private UserApprovalStatus approvalStatus = UserApprovalStatus.PENDING;
+
     private LocalDateTime createdAt =  LocalDateTime.now();
     private LocalDateTime updatedAt;
 

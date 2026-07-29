@@ -81,7 +81,7 @@ public class MfaController {
                     content = @Content
             )
     })
-    @PreAuthorize("hasAuthority('PRIV_MFA_SELF_MANAGE')")
+    @PreAuthorize("hasAuthority('MFA_SELF_MANAGE')")
     public ResponseEntity<?> mfaSetup(@AuthenticationPrincipal UsuarioPrincipal usuarioPrincipal) {
         return ResponseEntity.ok(
                 mfaService.mfaSetupForUser(
@@ -126,7 +126,7 @@ public class MfaController {
                     """)
             )
     )
-    @PreAuthorize("hasAuthority('PRIV_MFA_SELF_MANAGE')")
+    @PreAuthorize("hasAuthority('MFA_SELF_MANAGE')")
     public ResponseEntity<?> confirmMfa(@AuthenticationPrincipal UsuarioPrincipal usuarioPrincipal,
                                         @Valid @RequestBody MfaConfirmRequest req) {
         mfaService.confirmMfa(
@@ -213,7 +213,7 @@ public class MfaController {
             @ApiResponse(responseCode = "401", description = "Não autenticado ou credenciais inválidas", content = @Content),
             @ApiResponse(responseCode = "403", description = "Sem permissão de acesso", content = @Content)
     })
-    @PreAuthorize("hasAuthority('PRIV_MFA_SELF_DISABLE')")
+    @PreAuthorize("hasAuthority('MFA_SELF_DISABLE')")
     public ResponseEntity<?> disableMfa(
             @AuthenticationPrincipal UsuarioPrincipal usuarioPrincipal,
             @Valid @RequestBody MfaDisableRequest request

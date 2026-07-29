@@ -6,7 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 public class PlainTextMfaSecretProtectionService implements MfaSecretProtectionService {
 
     public PlainTextMfaSecretProtectionService() {
-        log.warn("Chave de criptografia de segredo MFA nao encontrada. Segredo MFA será salvo sem criptografia.");
+        log.warn("Chave de criptografia do MFA não encontrada. Novas configurações de MFA permanecerão bloqueadas.");
     }
 
     @Override

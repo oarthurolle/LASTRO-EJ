@@ -11,8 +11,13 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
+import jakarta.validation.ConstraintViolationException;
 
 import java.time.Instant;
 import java.util.List;
@@ -37,6 +42,19 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.BAD_REQUEST, "Dados inválidos.", request.getRequestURI(), fields);
     }
 
+    @ExceptionHandler({
+            HttpMessageNotReadableException.class,
+            MethodArgumentTypeMismatchException.class,
+            MissingServletRequestParameterException.class,
+            ConstraintViolationException.class
+    })
+    public ResponseEntity<ApiErrorResponse> handleMalformedRequest(
+            Exception ex,
+            HttpServletRequest request
+    ) {
+        return build(HttpStatus.BAD_REQUEST, "Requisição inválida.", request.getRequestURI(), null);
+    }
+
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ApiErrorResponse> handleBadCredentials(BadCredentialsException ex, HttpServletRequest request) {
         return build(HttpStatus.UNAUTHORIZED, "Credenciais inválidas!", request.getRequestURI(), null);
@@ -58,6 +76,11 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.NOT_FOUND, ex.getMessage(), request.getRequestURI(), null);
     }
 
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ApiErrorResponse> handleNoResourceFound(NoResourceFoundException ex, HttpServletRequest request) {
+        return build(HttpStatus.NOT_FOUND, "Recurso ou rota não encontrada.", request.getRequestURI(), null);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiErrorResponse> handleGeneric(Exception ex, HttpServletRequest request) {
         log.error("Erro não tratado em {}: {}", request.getRequestURI(), ex.getMessage(), ex);
@@ -71,7 +94,7 @@ public class GlobalExceptionHandler {
             List<FieldViolation> fieldViolations
     ) {
         ApiErrorResponse body = new ApiErrorResponse(
-                status,
+                status.value(),
                 status.getReasonPhrase(),
                 message,
                 path,

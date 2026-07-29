@@ -9,6 +9,7 @@ import br.com.lastro.dto.RefreshRequest;
 import br.com.lastro.dto.RegisterRequest;
 import br.com.lastro.dto.RegisterResponse;
 import br.com.lastro.dto.ResendVerificationRequest;
+import br.com.lastro.dto.UserDTO;
 import br.com.lastro.service.auth.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -45,6 +46,18 @@ public class AuthController {
         return ResponseEntity.ok(
                 authService.login(loginRequest)
         );
+    }
+
+    @GetMapping("/me")
+    @Operation(
+            summary = "Consultar sessão atual",
+            description = "Retorna a identidade, roles e privilégios atuais do usuário autenticado.",
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    public ResponseEntity<UserDTO> currentUser(
+            @AuthenticationPrincipal UsuarioPrincipal usuarioPrincipal
+    ) {
+        return ResponseEntity.ok(usuarioPrincipal.getUserDto());
     }
 
     @PostMapping("/register")

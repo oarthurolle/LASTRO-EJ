@@ -14,6 +14,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Version;
 
 import java.time.LocalDateTime;
 
@@ -62,6 +63,9 @@ public class BlogPost {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @Version
+    private Long version;
 
     @PreUpdate
     public void preUpdate() {

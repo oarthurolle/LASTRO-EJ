@@ -1,61 +1,170 @@
-# LASTRO EJ - Site Institucional (Frontend)
+# LASTRO EJ — Frontend
 
-Este é o repositório frontend para o site institucional da LASTRO EJ. Ele consome a API do Backend Spring Boot e fornece a interface pública e administrativa para os recursos do site.
+Aplicação web institucional e painel administrativo da LASTRO EJ. O frontend
+consome a API Spring Boot disponível no diretório `../Backend` e apresenta
+interfaces diferentes conforme os cargos e privilégios do usuário autenticado.
 
-## Stack Tecnológica
-- **Framework:** React 19 + TypeScript
-- **Build Tool:** Vite
-- **Ícones e UI:** Lucide React e React Icons
-- **Carrossel:** Embla Carousel
-- **Linter:** ESLint
+## Tecnologias
 
-## Funcionalidades e Telas
-A aplicação front-end consome os endpoints estipulados no contrato global e abrange:
-1. **Home Dinâmica:** Exibição do carrossel de Parceiros, listagem de Indicadores da empresa e formulário de Contato com proteção anti-spam.
-2. **Cases de Sucesso:** Listagem de portfólio no formato *Problema -> Solução -> Resultado*.
-3. **Blog Institucional:** Leitura de postagens completas e listagem paginada consumida por *slug*.
-4. **Painel Administrativo:** (Para os usuários autenticados com token JWT e privilégios específicos)
-   - Criação, edição e publicação de postagens do Blog (`PRIV_BLOG_ADMIN`).
-   - Gestão de Cases de Sucesso (`PRIV_CASES_ADMIN`).
-   - Gestão da ordem (`sortOrder`) e visibilidade (`active`) de Parceiros (`PRIV_PARTNERS_ADMIN`).
-   - Atualização de valores dos Indicadores (`PRIV_INDICATORS_ADMIN`).
-   - Visualização da caixa de leads do Contato (`PRIV_CONTACTS_VIEW`).
+- React 19
+- TypeScript 6
+- Vite 8
+- ESLint
+- Embla Carousel
+- Lucide React e React Icons
 
-## Como Executar Localmente
+## Estado atual
 
-### Pré-requisitos
-- Node.js
-- Gerenciador de pacotes npm
-- Backend rodando localmente (normalmente em `http://localhost:8080`)
+| Área | Situação |
+|---|---|
+| Home institucional | Implementada |
+| Parceiros da home | Integrados à API pública |
+| Blog público | Listagem e leitura por slug implementadas |
+| Autenticação administrativa | Login JWT, renovação de sessão, MFA e solicitação de cadastro |
+| Painel de blog | CRUD e publicação integrados à API |
+| Painel de parceiros | CRUD integrado à API |
+| Gestão da equipe | Aprovação, reprovação, exclusão e alteração de cargo para a diretoria |
+| Cases, indicadores, contatos e informações da empresa | Sinalizados na interface como indisponíveis |
+| Sobre, serviços, cases, contato e privacidade | Páginas temporárias de funcionalidade indisponível |
 
-### Instalação de Dependências
-```bash
-npm install
+O cadastro público cria uma solicitação com o cargo `BASIC` e estado `PENDING`.
+O usuário somente consegue entrar depois da aprovação de uma conta
+`DIRECTOR`. A confirmação imediata de e-mail está desabilitada no fluxo atual.
+
+## Pré-requisitos
+
+- Node.js compatível com o Vite 8
+- npm
+- Backend disponível, por padrão, em `http://localhost:8080`
+
+## Configuração
+
+Crie o arquivo local de ambiente a partir do exemplo:
+
+```powershell
+Copy-Item .env.example .env
 ```
 
-### Execução em Desenvolvimento
-```bash
+Variável disponível:
+
+| Variável | Uso |
+|---|---|
+| `VITE_API_URL` | Origem do backend, sem barra final |
+
+Durante o desenvolvimento, mantenha `VITE_API_URL` vazio. O Vite encaminha
+automaticamente `/api`, `/auth`, `/mfa` e `/refresh` para
+`http://localhost:8080`.
+
+Em produção, configure a origem completa:
+
+```dotenv
+VITE_API_URL=https://api.exemplo.com
+```
+
+Variáveis do Vite são incorporadas durante o build. Portanto, alterá-las depois
+de gerar `dist/` não modifica os arquivos já compilados.
+
+## Execução local
+
+Dentro do diretório `Frontend`:
+
+```powershell
+npm ci
 npm run dev
 ```
 
-O comando acima iniciará o servidor Vite, geralmente na porta `5173`.
+A aplicação ficará disponível normalmente em
+`http://localhost:5173`.
 
-### Build para Produção
-```bash
+Comandos úteis:
+
+```powershell
+npm run lint
+npm run build
+npm run preview
+```
+
+O build de produção é gerado em `dist/`.
+
+## Rotas
+
+| Rota | Descrição |
+|---|---|
+| `/` | Home institucional |
+| `/blog` | Listagem pública do blog |
+| `/blog/{slug}` | Leitura de uma publicação |
+| `/admin` | Login, solicitação de cadastro e painel administrativo |
+
+A aplicação resolve as rotas pelo caminho atual do navegador. Ao publicar o
+conteúdo de `dist/`, configure o servidor para devolver `index.html` também nos
+acessos diretos a `/blog/*` e `/admin/*`.
+
+## Integração e controle de acesso
+
+As páginas públicas consultam:
+
+- `GET /api/public/posts`
+- `GET /api/public/posts/{slug}`
+- `GET /api/public/partners`
+
+O painel usa os endpoints protegidos de autenticação, blog, parceiros e gestão
+de usuários. Requisições protegidas enviam
+`Authorization: Bearer <access-token>`.
+
+O menu administrativo é filtrado pelos privilégios devolvidos por `/auth/me`.
+Entre os privilégios reconhecidos estão:
+
+- `PRIV_BLOG_ADMIN`
+- `PRIV_PARTNERS_ADMIN`
+- `PRIV_CASES_ADMIN`
+- `PRIV_INDICATORS_ADMIN`
+- `PRIV_CONTACTS_VIEW`
+- `PRIV_COMPANY_INFO_ADMIN`
+- `PRIV_USER_MANAGEMENT`
+
+Contas `ADMIN` recebem as áreas administrativas compatíveis com seus
+privilégios. Contas `DIRECTOR` também acessam a gestão da equipe.
+
+Os tokens da sessão são mantidos em `sessionStorage`; fechar a sessão do
+navegador remove esse estado local. Em respostas `401`, o frontend tenta renovar
+o acesso com o refresh token quando aplicável.
+
+## Segurança do conteúdo do blog
+
+O conteúdo do blog é HTML. Antes de exibi-lo, o frontend remove elementos,
+atributos e URLs potencialmente perigosos. O editor administrativo também
+sanitiza o conteúdo, e a aplicação possui uma política CSP como camada
+adicional.
+
+Essa proteção deve ser preservada. Nunca renderize o campo `content` diretamente
+com `innerHTML` ou `dangerouslySetInnerHTML` sem passar pelo sanitizador
+compartilhado em `src/utils/sanitizeHtml.ts`.
+
+## Estrutura principal
+
+```text
+src/
+├── auth/                  # sessão, chamadas HTTP e tipos de autenticação
+├── components/            # componentes comuns e seções da home
+├── pages/
+│   ├── Admin/             # painel e gerenciadores administrativos
+│   ├── Auth/              # login e solicitação de cadastro
+│   ├── Blog/              # blog público
+│   ├── Home/              # página inicial
+│   └── Unavailable/       # páginas ainda não implementadas
+├── styles/                # estilos e variáveis globais
+└── utils/                 # utilitários compartilhados
+```
+
+## Antes de enviar alterações
+
+Execute:
+
+```powershell
+npm run lint
 npm run build
 ```
 
-## Integração com a API (Backend)
-O frontend espera que a API backend (Spring Boot) obedeça rigorosamente aos contratos definidos nos documentos normativos:
-- **Rotas Públicas** (`/api/public/*`): Não necessitam de token. Trazem os dados já filtrados e ordenados.
-- **Rotas Administrativas** (`/api/admin/*`): Exigem o token no header `Authorization: Bearer <TOKEN>`.
-- Todos os JSONs transitam em `camelCase`.
-- Retornos de erro seguem o padrão global definido pelo backend, contendo `timestamp`, `status`, `error`, `message` e `path`.
-
-## Metodologia de Desenvolvimento
-O desenvolvimento de novas features e integrações no frontend deve ser precedido por alinhamento e leitura atenta dos requisitos da API (conforme documentado na pasta do Backend).
-- **Não assuma comportamentos não documentados**. 
-- Qualquer mudança em payloads, obrigatoriedade de campos ou nomes de variáveis que afete a comunicação deve ser formalizada.
-
----
-**Nota para Desenvolvedores e Agentes:** Sempre verifique a comunicação com os endpoints listados e a especificação de domínio do projeto antes de alterar estados de componentes que trafegam informações para a API.
+Não adicione dados fictícios para preencher telas vazias. A aplicação deve
+exibir o estado vazio ou o aviso de funcionalidade indisponível até existir uma
+integração real.
