@@ -1,17 +1,13 @@
+// src/pages/site/Cases.tsx
 import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { type Case, CATEGORIAS_CASE } from "../../types/case";
-import { getCases } from "../../services/casesApi";
+import { type Case, SERVICE_CATEGORIES } from "../../types/case";
+import { getPublicCases } from "../../services/casesApi";
 import Header from "../../components/site/Header";
 import Footer from "../../components/site/Footer";
 
-const CATEGORIAS = ["Todos", ...CATEGORIAS_CASE];
+const CATEGORIAS = ["Todos", ...SERVICE_CATEGORIES];
 const PAGE_SIZE = 6;
-
-function formatDateBR(iso: string): string {
-  const [y, m, d] = iso.split("-");
-  return `${d}/${m}/${y.slice(2)}`;
-}
 
 export default function Cases() {
   const [cases, setCases] = useState<Case[]>([]);
@@ -21,22 +17,25 @@ export default function Cases() {
   const [visibleCount, setVisibleCount] = useState<number>(PAGE_SIZE);
 
   useEffect(() => {
-    getCases()
+    getPublicCases()
       .then(setCases)
       .catch(() => setErro("Não foi possível carregar os cases agora. Tente novamente em instantes."))
       .finally(() => setCarregando(false));
   }, []);
 
-  const publicados = useMemo(() => cases.filter((c) => c.status === "Publicado"), [cases]);
-
+  // Não há mais filtro client-side de status: a rota pública já devolve só PUBLISHED (ponto #8).
   const filtrados = useMemo(() => {
-    return publicados
-      .filter((c) => categoria === "Todos" || c.categoria === categoria)
-      .sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
-  }, [publicados, categoria]);
+    return cases
+      .filter((c) => categoria === "Todos" || c.serviceCategory === categoria)
+      .sort((a, b) => new Date(b.projectDate).getTime() - new Date(a.projectDate).getTime());
+  }, [cases, categoria]);
 
   const visiveis = filtrados.slice(0, visibleCount);
-  const primeiroComDepoimento = publicados.find((c) => c.depoimentoTexto);
+  const primeiroComDepoimento = cases.find((c) => c.testimonial);
+
+  function formatDateBR(_projectDate: string): import("react").ReactNode {
+    throw new Error("Function not implemented.");
+  }
 
   return (
     <>
@@ -66,13 +65,13 @@ export default function Cases() {
           <>
             <div className="cases-grid">
               {visiveis.map((c) => (
-                <Link key={c.slug} to={`/cases/${c.slug}`} className="case-card">
+                <Link key={c.id} to={`/cases/${c.id}`} className="case-card">
                   <div className="case-media">
-                    <img src={c.imagem} alt={c.titulo} />
+                    <img src={c.coverImageUrl} alt={c.clientName} />
                     <div className="case-media-content">
-                      <span className="case-cat">{c.categoria}</span>
-                      <h3>{c.titulo}</h3>
-                      <span className="case-date">{formatDateBR(c.data)}</span>
+                      <span className="case-cat">{c.serviceCategory}</span>
+                      <h3>{c.clientName}</h3>
+                      <span className="case-date">{formatDateBR(c.projectDate)}</span>
                     </div>
                   </div>
                 </Link>
@@ -102,7 +101,6 @@ export default function Cases() {
           <div className="impact-text">
             <h2>Transformamos desafios financeiros em oportunidades de crescimento</h2>
             <p>Cada projeto desenvolvido pela Lastro é conduzido com análise, planejamento e dedicação para entregar soluções que geram impacto real nos resultados dos nossos clientes.</p>
-            <p>Do diagnóstico inicial ao acompanhamento dos resultados, trabalhamos lado a lado com cada empresa para transformar números em decisões — e decisões em crescimento.</p>
           </div>
         </section>
 
@@ -115,8 +113,8 @@ export default function Cases() {
                 <path d="M9.98 8C7.23 8 5 10.24 5 13c0 2.76 2.24 5 5 5-1.5 0-3-1.5-3-3.5V14c.32.16.68.25 1.06.25C9.5 14.25 11 12.75 11 11c0-1.75-1.5-3-3.02-3zm9 0C16.23 8 14 10.24 14 13c0 2.76 2.24 5 5 5-1.5 0-3-1.5-3-3.5V14c.32.16.68.25 1.06.25 1.44 0 2.94-1.5 2.94-3.25 0-1.75-1.5-3-3.02-3z" />
               </svg>
               <div>
-                <blockquote>"{primeiroComDepoimento.depoimentoTexto}"</blockquote>
-                <cite>{primeiroComDepoimento.depoimentoAutor}</cite>
+                <blockquote>"{primeiroComDepoimento.testimonial}"</blockquote>
+                <cite>{primeiroComDepoimento.clientName}</cite>
               </div>
             </div>
           </section>

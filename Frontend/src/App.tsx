@@ -1,3 +1,4 @@
+// src/App.tsx
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ToastProvider } from "./components/admin/Toast";
 
@@ -11,9 +12,8 @@ export default function App() {
     <BrowserRouter>
       <ToastProvider>
         <Routes>
-          <Route path="/" element={<Cases />} />
           <Route path="/cases" element={<Cases />} />
-          <Route path="/cases/:slug" element={<CaseDetalhe />} />
+          <Route path="/cases/:id" element={<CaseDetalhe />} />
 
           <Route path="/admin/cases" element={<AdminCasesLista />} />
           <Route path="/admin/cases/novo" element={<AdminCasesForm />} />

@@ -1,15 +1,11 @@
+// src/pages/admin/AdminCasesLista.tsx
 import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { type Case, CATEGORIAS_CASE } from "../../types/case";
-import { getCases, deleteCase } from "../../services/casesApi";
+import { type Case, SERVICE_CATEGORIES } from "../../types/case";
+import { getAdminCases, deleteCase, ApiError } from "../../services/casesApi";
 import AdminSidebar from "../../components/admin/AdminSidebar";
 import AdminTopbar from "../../components/admin/AdminTopbar";
 import { useToast } from "../../components/admin/Toast";
-
-function formatDateBR(iso: string): string {
-  const [y, m, d] = iso.split("-");
-  return `${d}/${m}/${y.slice(2)}`;
-}
 
 export default function AdminCasesLista() {
   const { showToast } = useToast();
@@ -25,11 +21,11 @@ export default function AdminCasesLista() {
   async function carregar() {
     setCarregando(true);
     try {
-      const dados = await getCases();
+      const dados = await getAdminCases();
       setCases(dados);
       setErro("");
-    } catch {
-      setErro("Não foi possível carregar os cases.");
+    } catch (e) {
+      setErro(e instanceof ApiError ? e.message : "Não foi possível carregar os cases.");
     } finally {
       setCarregando(false);
     }
@@ -38,21 +34,25 @@ export default function AdminCasesLista() {
   const filtrados = useMemo(() => {
     const q = busca.trim().toLowerCase();
     return cases
-      .filter((c) => !q || c.cliente.toLowerCase().includes(q) || c.titulo.toLowerCase().includes(q))
+      .filter((c) => !q || c.clientName.toLowerCase().includes(q))
       .filter((c) => statusFiltro === "todos" || c.status === statusFiltro)
-      .filter((c) => categoriaFiltro === "todos" || c.categoria === categoriaFiltro)
-      .sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
+      .filter((c) => categoriaFiltro === "todos" || c.serviceCategory === categoriaFiltro)
+      .sort((a, b) => new Date(b.projectDate).getTime() - new Date(a.projectDate).getTime());
   }, [cases, busca, statusFiltro, categoriaFiltro]);
 
   async function handleExcluir(c: Case) {
-    if (!confirm(`Excluir o case "${c.titulo}"? Essa ação não pode ser desfeita.`)) return;
+    if (!confirm(`Excluir o case de "${c.clientName}"? Essa ação não pode ser desfeita.`)) return;
     try {
       await deleteCase(c.id);
       await carregar();
       showToast("Case excluído.");
-    } catch {
-      alert("Erro ao excluir o case. Tente novamente.");
+    } catch (e) {
+      alert(e instanceof ApiError ? e.message : "Erro ao excluir o case.");
     }
+  }
+
+  function formatDateBR(_projectDate: string): import("react").ReactNode {
+    throw new Error("Function not implemented.");
   }
 
   return (
@@ -66,25 +66,22 @@ export default function AdminCasesLista() {
               <h1>Cases de Sucesso</h1>
               <p>Crie e edite os projetos exibidos na página pública de Cases.</p>
             </div>
-            <Link to="/admin/cases/novo" className="btn btn-primary">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14" /><path d="M5 12h14" /></svg>
-              Novo Case
-            </Link>
+            <Link to="/admin/cases/novo" className="btn btn-primary">+ Novo Case</Link>
           </div>
 
           <div className="toolbar">
             <div className="search-field">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
-              <input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar por cliente ou título..." />
+              <input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar por cliente..." />
             </div>
             <select className="filter-select" value={statusFiltro} onChange={(e) => setStatusFiltro(e.target.value)}>
               <option value="todos">Todos os status</option>
-              <option value="Publicado">Publicado</option>
-              <option value="Rascunho">Rascunho</option>
+              <option value="PUBLISHED">Publicado</option>
+              <option value="DRAFT">Rascunho</option>
             </select>
             <select className="filter-select" value={categoriaFiltro} onChange={(e) => setCategoriaFiltro(e.target.value)}>
               <option value="todos">Todas as categorias</option>
-              {CATEGORIAS_CASE.map((cat) => <option key={cat} value={cat}>{cat}</option>)}
+              {SERVICE_CATEGORIES.map((cat) => <option key={cat} value={cat}>{cat}</option>)}
             </select>
           </div>
 
@@ -96,7 +93,7 @@ export default function AdminCasesLista() {
               <table>
                 <thead>
                   <tr>
-                    <th style={{ width: "34%" }}>Case</th>
+                    <th style={{ width: "34%" }}>Cliente</th>
                     <th>Categoria</th>
                     <th>Data</th>
                     <th>Status</th>
@@ -111,23 +108,15 @@ export default function AdminCasesLista() {
                     <tr key={c.id}>
                       <td>
                         <div className="case-cell">
-                          <img className="case-thumb" src={c.imagem} alt="" />
-                          <div>
-                            <div className="case-title">{c.titulo}</div>
-                            <div className="case-client">{c.cliente}</div>
-                          </div>
+                          <img className="case-thumb" src={c.coverImageUrl} alt="" />
+                          <div className="case-title">{c.clientName}</div>
                         </div>
                       </td>
-                      <td><span className="badge badge-category">{c.categoria}</span></td>
-                      <td>{formatDateBR(c.data)}</td>
+                      <td><span className="badge badge-category">{c.serviceCategory}</span></td>
+                      <td>{formatDateBR(c.projectDate)}</td>
                       <td>
-                        <span className={"badge " + (c.status === "Publicado" ? "badge-published" : "badge-draft")}>
-                          {c.status === "Publicado" ? (
-                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
-                          ) : (
-                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /></svg>
-                          )}
-                          {c.status}
+                        <span className={"badge " + (c.status === "PUBLISHED" ? "badge-published" : "badge-draft")}>
+                          {c.status === "PUBLISHED" ? "Publicado" : "Rascunho"}
                         </span>
                       </td>
                       <td>

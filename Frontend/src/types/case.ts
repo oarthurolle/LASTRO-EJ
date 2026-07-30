@@ -1,32 +1,27 @@
+// src/types/case.ts
+
 export interface Case {
   id: number;
-  slug: string;
-  cliente: string;
-  segmento: string;
-  categoria: string;
-  data: string;                     
-  status: "Publicado" | "Rascunho";
-  imagem: string;
-  titulo: string;
-  servico: string;
-
-  desafio: string;
-  solucaoResumo: string;
-  solucaoItens: string[];
-  resultados: string[];
-
-  depoimentoTexto?: string;
-  depoimentoAutor?: string;
-  destaque?: boolean;
+  clientName: string;
+  serviceCategory: string;
+  problem: string;
+  solution: string;
+  result: string;
+  coverImageUrl: string;
+  testimonial?: string;
+  projectDate: string;              
+  status?: "DRAFT" | "PUBLISHED";    
 }
+
 
 export type CaseInput = Omit<Case, "id">;
 
-export const CATEGORIAS_CASE = [
+export const SERVICE_CATEGORIES = [
   "Diagnóstico Financeiro",
   "Plano de Negócios",
   "Estudo de Mercado e Viabilidade",
   "Planejamento Estratégico",
   "Gestão de Custos e Precificação",
   "Indicadores e Relatórios Gerenciais",
+  "Otimização de Processos",
 ] as const;
