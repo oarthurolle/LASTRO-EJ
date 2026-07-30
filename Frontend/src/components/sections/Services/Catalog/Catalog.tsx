@@ -2,11 +2,11 @@ import "./Catalog.css";
 
 import ServiceCatalogCard from "./ServiceCatalogCard";
 
-import fluxoCaixa from "../../../../assets/images/Services/fluxo-caixa.png";
-import pesquisaMercado from "../../../../assets/images/Services/pesquisa-mercado.png";
-import planejamento from "../../../../assets/images/Services/planejamento.png";
-import precificacao from "../../../../assets/images/Services/precificacao.png";
-import investimentos from "../../../../assets/images/Services/investimentos.png";
+import fluxoCaixa from "../../../../assets/images/services/fluxo-caixa.png";
+import pesquisaMercado from "../../../../assets/images/services/pesquisa-mercado.png";
+import planejamento from "../../../../assets/images/services/planejamento.png";
+import precificacao from "../../../../assets/images/services/precificacao.png";
+import investimentos from "../../../../assets/images/services/investimentos.png";
 
 const services = [
   {
