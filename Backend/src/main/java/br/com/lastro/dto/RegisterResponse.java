@@ -9,4 +9,5 @@ public class RegisterResponse {
     String message;
     String email;
     boolean verificationRequired;
+    boolean approvalRequired;
 }

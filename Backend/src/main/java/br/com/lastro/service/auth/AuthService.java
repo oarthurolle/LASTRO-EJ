@@ -4,6 +4,8 @@ import br.com.lastro.dto.*;
 import br.com.lastro.email.service.ApplicationEmailService;
 import br.com.lastro.entity.EmailTokenType;
 import br.com.lastro.entity.User;
+import br.com.lastro.entity.UserApprovalStatus;
+import br.com.lastro.exception.exceptions.ApiException;
 import br.com.lastro.exception.exceptions.ConflictException;
 import br.com.lastro.exception.exceptions.EmailNotVerifiedException;
 import br.com.lastro.exception.exceptions.NotFoundException;
@@ -14,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
@@ -23,6 +26,7 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Set;
+import java.util.Locale;
 
 @Service
 @RequiredArgsConstructor
@@ -47,7 +51,7 @@ public class AuthService {
     private String issuer;
 
     public LoginResponse login(LoginRequest loginRequest) {
-        String email = loginRequest.getEmail().trim().toLowerCase();
+        String email = loginRequest.getEmail().trim().toLowerCase(Locale.ROOT);
         String ip = clientIp(request);
 
         String keyIp = "ip:" + ip;
@@ -66,6 +70,20 @@ public class AuthService {
             bruteforceProtectionService.onLoginFailure(keyIp);
             bruteforceProtectionService.onLoginFailure(keyIpEmail);
             throw new BadCredentialsException("Credenciais inválidas!");
+        }
+
+        if (user.getApprovalStatus() == UserApprovalStatus.PENDING) {
+            throw new ApiException(
+                    HttpStatus.FORBIDDEN,
+                    "Seu cadastro ainda aguarda aprovação da diretoria."
+            );
+        }
+
+        if (user.getApprovalStatus() == UserApprovalStatus.REJECTED) {
+            throw new ApiException(
+                    HttpStatus.FORBIDDEN,
+                    "Sua solicitação de acesso não foi aprovada. Entre em contato com a diretoria."
+            );
         }
 
         if (!user.isEmailVerified()) {
@@ -102,7 +120,8 @@ public class AuthService {
     }
 
     public RegisterResponse register(RegisterRequest registerRequest) {
-        String normalizedEmail = registerRequest.getEmail().trim().toLowerCase();
+        consumePublicActionQuota("register");
+        String normalizedEmail = registerRequest.getEmail().trim().toLowerCase(Locale.ROOT);
 
         // Verifica se o usuario ja existe no banco de dados
         var existingUser = userRepository.findByEmail(normalizedEmail);
@@ -116,19 +135,20 @@ public class AuthService {
         User user = new User();
         user.setEmail(normalizedEmail);
         user.setPassword(bCryptPasswordEncoder.encode(registerRequest.getPassword()));
+        user.setPresentationName(registerRequest.getPresentationName().trim());
         user.setRoles(Set.of(basicRole));
         user.setSecret(null);
         user.setMfaEnabled(false);
-        user.setEmailVerified(false);
+        user.setEmailVerified(true);
+        user.setApprovalStatus(UserApprovalStatus.PENDING);
 
         User savedUser = userRepository.save(user);
-        String rawToken = emailTokenService.create(savedUser, EmailTokenType.EMAIL_VERIFICATION, Duration.ofHours(24));
-        applicationEmailService.sendEmailVerification(savedUser, rawToken);
 
         return RegisterResponse.builder()
-                .message("Usuário cadastrado com sucesso! Verifique seu email para liberar o acesso.")
+                .message("Solicitação enviada. Você poderá entrar no painel após a aprovação de um diretor.")
                 .email(savedUser.getEmail())
-                .verificationRequired(true)
+                .verificationRequired(false)
+                .approvalRequired(true)
                 .build();
     }
 
@@ -147,7 +167,8 @@ public class AuthService {
     }
 
     public GenericMessageResponse resendVerification(ResendVerificationRequest request) {
-        String email = request.getEmail().trim().toLowerCase();
+        consumePublicActionQuota("resend-verification");
+        String email = request.getEmail().trim().toLowerCase(Locale.ROOT);
         userRepository.findByEmail(email)
                 .filter(user -> !user.isEmailVerified())
                 .ifPresent(user -> {
@@ -161,7 +182,8 @@ public class AuthService {
     }
 
     public GenericMessageResponse forgotPassword(ForgotPasswordRequest request) {
-        String email = request.getEmail().trim().toLowerCase();
+        consumePublicActionQuota("forgot-password");
+        String email = request.getEmail().trim().toLowerCase(Locale.ROOT);
         userRepository.findByEmail(email)
                 .filter(User::isEmailVerified)
                 .ifPresent(user -> {
@@ -207,5 +229,11 @@ public class AuthService {
                 .build();
 
         return jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
+    }
+
+    private void consumePublicActionQuota(String action) {
+        String key = "public_action:" + action + ":" + clientIp(request);
+        bruteforceProtectionService.assertNotBlocked(key);
+        bruteforceProtectionService.onLoginFailure(key);
     }
 }

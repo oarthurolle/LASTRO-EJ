@@ -1,17 +1,18 @@
 package br.com.lastro.config.security;
 
+import br.com.lastro.entity.UserApprovalStatus;
 import br.com.lastro.repository.UserRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 
 import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Configuration
 public class JwtConverterConfig {
@@ -21,27 +22,37 @@ public class JwtConverterConfig {
             UserRepository userRepository
     ) {
         return jwt -> {
-            Long userId = Long.valueOf(jwt.getSubject());
+            if (!"access".equals(jwt.getClaimAsString("typ"))) {
+                throw new BadCredentialsException("Tipo de token inválido.");
+            }
 
-            var roles = jwt.getClaimAsStringList("roles");
-            if (roles == null) roles = List.of();
-            var privileges = jwt.getClaimAsStringList("privileges");
-            if (privileges == null) privileges = List.of();
-
-            var authorities = roles.stream()
-                    .map(r -> new SimpleGrantedAuthority("ROLE_" + r))
-                    .collect(Collectors.toCollection(LinkedHashSet::new));
-            authorities.addAll(
-                    privileges.stream()
-                            .map(privilege -> new SimpleGrantedAuthority("PRIV_" + privilege))
-                            .toList()
-            );
+            Long userId;
+            try {
+                userId = Long.valueOf(jwt.getSubject());
+            } catch (RuntimeException exception) {
+                throw new BadCredentialsException("Token inválido.", exception);
+            }
 
             var user = userRepository.findById(userId)
-                    .orElseThrow(() -> new RuntimeException("Usuário não encontrado."));
+                    .orElseThrow(() -> new BadCredentialsException("Usuário não encontrado."));
+
+            if (user.getApprovalStatus() != UserApprovalStatus.APPROVED) {
+                throw new DisabledException("Usuário sem acesso aprovado.");
+            }
+
+            var authorities = new LinkedHashSet<SimpleGrantedAuthority>();
+            if (user.getRoles() != null) {
+                user.getRoles().forEach(role -> {
+                    authorities.add(new SimpleGrantedAuthority("ROLE_" + role.getName()));
+                    if (role.getPrivileges() != null) {
+                        role.getPrivileges().forEach(privilege ->
+                                authorities.add(new SimpleGrantedAuthority(privilege.getName()))
+                        );
+                    }
+                });
+            }
 
             var principal = new UsuarioPrincipal(user, authorities);
-
             return new UsernamePasswordAuthenticationToken(
                     principal,
                     jwt.getTokenValue(),

@@ -1,196 +1,294 @@
-# D3TEC - DEVELOPERS TEMPUS COMPUTATRUM
-# Template Backend Spring Boot (JWT + MFA)
+# LASTRO EJ — Backend
 
-Este template foi idealizado e mantido por **Miguel Silvano** ([github.com/MiguelSGJ](https://github.com/MiguelSGJ)),
-com o objetivo de oferecer uma base sólida, moderna e reutilizável para novos projetos backend.
+API do site institucional e do painel administrativo da LASTRO EJ. O projeto
+fornece autenticação JWT, autorização por cargos e privilégios, gestão do blog,
+gestão de parceiros e o fluxo de aprovação de novos usuários.
 
-## Resumo
-Este projeto é um template de API backend em Java com Spring Boot pensado para agilizar o desenvolvimento de software, reduzindo o tempo gasto com configuração inicial e entregando, desde o início, uma estrutura pronta para autenticação, segurança e evolução do sistema.
+## Tecnologias
 
-Ele já inclui:
-- autenticação com JWT (access token)
-- refresh token com endpoint de renovação
-- MFA (TOTP) com setup por QR Code e validação
-- controle de tentativas de login (proteção contra brute force)
-- sistema de email transacional com abstração de fila e implementação padrão em Redis
-- documentação OpenAPI/Swagger no perfil de desenvolvimento
-- persistência com PostgreSQL + migrações Flyway
+- Java 21
+- Spring Boot 4.0.1
+- Spring Security e OAuth2 Resource Server
+- PostgreSQL e Spring Data JPA
+- Flyway
+- Redis
+- Spring Mail
+- Testcontainers
+- Swagger/OpenAPI no perfil de desenvolvimento
 
-## Versões principais
-- Java: **21**
-- Spring Boot: **4.0.1**
+## Funcionalidades implementadas
+
+- Login com access token JWT e refresh token rotativo
+- Autenticação multifator TOTP
+- Proteção contra tentativas repetidas em ações públicas
+- Solicitação pública de cadastro
+- Aprovação e reprovação de usuários pela diretoria
+- Cargos `BASIC`, `ADMIN` e `DIRECTOR`
+- Autorização por privilégios carregados do banco
+- CRUD administrativo e consulta pública de posts
+- Estados `DRAFT`, `PUBLISHED` e `UNPUBLISHED` para posts
+- CRUD administrativo e listagem pública de parceiros ativos
+- Fila Redis para envio de e-mails
+- Erros HTTP em JSON
+- Migrations versionadas e validação do schema na inicialização
+
+Cases, indicadores e contatos fazem parte do domínio planejado, mas seus fluxos
+completos ainda não estão disponíveis na aplicação atual.
 
 ## Pré-requisitos
-- Java 21 instalado
-- Maven (ou usar o wrapper `./mvnw` já no projeto)
-- PostgreSQL em execução
-- Redis em execução
-- SMTP disponível (MailHog/Mailpit local ou provedor real)
 
-## Como usar este projeto como template no GitHub
+- Java 21
+- Docker Desktop, recomendado para PostgreSQL, Redis, Mailpit e testes
+- Portas locais livres:
+  - `8080` para a API
+  - `5432` para PostgreSQL
+  - `6379` para Redis
+  - `1025` e `8025` para Mailpit, quando usado
 
-### 1. Criar um novo repositório a partir do template
-1. Acesse a página do repositório no GitHub.
-2. Clique em **Use this template**.
-3. Escolha **Create a new repository**.
-4. Defina nome, visibilidade e organização do novo projeto (** https://github.com/D3TECej **).
-5. Clique em **Create repository**.
+O Maven Wrapper já está incluído; não é necessário instalar Maven globalmente.
 
-### 2. Clonar o seu novo repositório
-```bash
-git clone <url-do-seu-novo-repositorio>
-cd <nome-do-seu-repositorio>
-```
+## Configuração
 
-### 3. Ajustar identidade e configurações do projeto
-Recomendado ajustar antes de iniciar as features:
-1. Renomear `artifactId`, `name` e `description` no `pom.xml`.
-2. Renomear o package base `com.d3tec.template.nomeDoSeuProjeto` para o package do seu domínio.
-3. Alterar `spring.application.name` nos arquivos de properties.
-4. Trocar as chaves JWT (`src/main/resources/app.key` e `src/main/resources/app.pub`) por chaves próprias.
-5. Revisar as migrações em `src/main/resources/migrations`.
+As configurações base estão em:
 
-### 4. Configurar ambiente local
-Edite os arquivos:
-- `src/main/resources/application-dev.properties`
 - `src/main/resources/application.properties`
+- `src/main/resources/application-dev.properties`
 
-Campos mais importantes:
-- `spring.datasource.url`
-- `spring.datasource.username`
-- `spring.datasource.password`
-- `spring.data.redis.host`
-- `spring.data.redis.port`
-- `spring.mail.host`
-- `spring.mail.port`
-- `app.mail.from-address`
-- `app.mail.base-url`
-- `bootstrap.admin.email`
-- `bootstrap.admin.password`
+Os principais valores são:
 
-### 5. Gerar chaves JWT (privada e pública)
-Na raiz do projeto, execute:
-```bash
-openssl genrsa -out src/main/resources/app.key 2048
-openssl rsa -in src/main/resources/app.key -pubout -out src/main/resources/app.pub
+| Propriedade | Finalidade |
+|---|---|
+| `spring.datasource.*` | Conexão PostgreSQL |
+| `spring.data.redis.*` | Conexão Redis |
+| `app.cors.allowed-origins` | Origens autorizadas, separadas por vírgula |
+| `jwt.public.key` e `jwt.private.key` | Chaves RSA usadas pelos tokens |
+| `jwt.token.expires.in` | Validade do access token em segundos |
+| `bootstrap.admin.*` | Credenciais da primeira conta `DIRECTOR` |
+| `security.mfa.secret-encryption.key` | Chave AES em Base64 para proteger segredos MFA |
+| `app.mail.*` e `spring.mail.*` | Remetente, links e transporte de e-mail |
+
+### Conta inicial da diretoria
+
+Somente uma conta de negócio é criada automaticamente: o diretor geral definido
+por estas propriedades:
+
+
+Altere principalmente a senha antes de usar o projeto fora de um ambiente
+local. Ela precisa possuir no mínimo 8 caracteres.
+
+Essas propriedades são consideradas **apenas quando ainda não existe uma conta
+`DIRECTOR` no banco**. Alterar os valores depois da primeira inicialização não
+renomeia a conta existente nem redefine sua senha. Essa regra evita a troca
+silenciosa de credenciais a cada reinicialização.
+
+Roles, privilégios e demais metadados técnicos são criados pelas migrations.
+Nenhum post, parceiro ou outro dado fictício é inserido.
+
+### Chave de MFA
+
+Para permitir novos cadastros de MFA, defina
+`SECURITY_MFA_SECRET_ENCRYPTION_KEY` com uma chave AES aleatória de 16, 24 ou
+32 bytes codificada em Base64. Sem essa configuração, novos setups MFA são
+bloqueados por segurança.
+
+Não versione a chave real nem senhas de produção.
+
+## Execução completa com Docker
+
+Dentro do diretório `Backend`:
+
+```powershell
+docker compose -f docker/docker-compose.deploy.yml up --build -d
 ```
 
-Esses arquivos são usados pelas propriedades:
-- `jwt.private.key=classpath:app.key`
-- `jwt.public.key=classpath:app.pub`
+Esse compose inicia:
 
-### 6. Executar em desenvolvimento
-```bash
-./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
+- API em `http://localhost:8080`
+- PostgreSQL em `localhost:5432`
+- Redis em `localhost:6379`
+
+Verifique o estado:
+
+```powershell
+docker compose -f docker/docker-compose.deploy.yml ps
 ```
 
-### 7. Validar que a API está funcionando
-Com a aplicação rodando no perfil `dev`:
-- Swagger UI: `http://localhost:8080/swagger-ui.html`
-- OpenAPI JSON: `http://localhost:8080/v3/api-docs`
+Para acompanhar os logs:
 
-Fluxo inicial recomendado para teste de autenticação:
-1. `POST /auth/register`
-2. abrir o link enviado por email em `GET /auth/verify-email?token=...`
-3. `POST /auth/login`
-4. `POST /mfa/verify` (se MFA estiver ativo)
-5. `POST /refresh`
-6. `GET /auth/logout/{token}`
-
-Fluxos novos de email:
-1. `POST /auth/register` cria usuário não verificado e publica email na fila Redis
-2. `POST /auth/resend-verification` reenfileira o email de confirmação
-3. `POST /auth/forgot-password` envia instruções para continuidade do fluxo de recuperação
-
-## Estrutura rápida
-- `src/main/java/.../controller/auth`: endpoints de autenticação, refresh e MFA
-- `src/main/java/.../service/auth`: regras de login, tokens, MFA e segurança
-- `src/main/java/.../email`: fila abstrata, adapter Redis, templates e envio SMTP
-- `src/main/resources/migrations`: scripts Flyway
-- `src/main/resources/application-*.properties`: configuração por ambiente
-
-## Testes
-Os testes de integração usam **Testcontainers** com PostgreSQL e perfil `test`.
-
-Para executar localmente:
-```bash
-./mvnw test
+```powershell
+docker compose -f docker/docker-compose.deploy.yml logs -f app
 ```
 
-Pré-requisito importante:
-- Docker em execução (o Testcontainers precisa disso para subir o banco de teste).
+Para encerrar os containers preservando o volume do banco:
 
-No CI (GitHub Actions), use runner Linux com Docker disponível (ex.: `ubuntu-latest`) e execute `./mvnw test`.
-### Como criar novos emails sem conhecer a implementação
-O ponto de entrada para features é o serviço `ApplicationEmailService`.
-
-Para um novo caso de uso, o desenvolvedor precisa apenas:
-1. adicionar o novo tipo em `EmailType`
-2. adicionar o template correspondente no renderer
-3. criar um método descritivo em `ApplicationEmailService`
-4. chamar esse método a partir do serviço da feature
-
-Exemplo para postagem criada:
-```java
-applicationEmailService.sendPostCreated(
-    PostCreatedEmailPayload.builder()
-        .recipient(usuario.getEmail())
-        .postId(post.getId())
-        .postTitle(post.getTitle())
-        .build()
-);
+```powershell
+docker compose -f docker/docker-compose.deploy.yml down
 ```
 
-## Comandos úteis
-```bash
-# Rodar testes
-./mvnw test
+Não adicione `--volumes` se desejar manter os dados.
 
-# Gerar pacote
-./mvnw clean package
+O compose aceita, entre outras, as variáveis `POSTGRES_DB`, `POSTGRES_USER`,
+`POSTGRES_PASSWORD`, `APP_CORS_ALLOWED_ORIGINS`,
+`SECURITY_MFA_SECRET_ENCRYPTION_KEY` e as configurações `SPRING_MAIL_*`.
+
+## Execução em desenvolvimento
+
+Suba primeiro as dependências:
+
+```powershell
+docker compose -f docker/docker-compose.deploy.yml up -d postgres redis
+docker compose -f docker/docker-compose.test.yml up -d mailpit
 ```
 
-## Diretrizes GitHub (Resumo)
-Arquivo: docs/GITHUB_PROJECT_GUIDELINES_SUMARIO.md
+Depois execute:
 
-## Deploy do sistema de email
-Checklist mínimo:
-- Redis acessível pela aplicação
-- SMTP configurado em `spring.mail.*`
-- URL pública correta em `app.mail.base-url`
-- domínio remetente autenticado com SPF, DKIM e DMARC
-- caixa remetente consistente (`app.mail.from-address`)
-
-Observações operacionais:
-- O Redis é usado apenas para enfileiramento e retry dos jobs de email.
-- O envio real continua sendo feito por SMTP.
-- A abstração `EmailQueuePort` permite adicionar outra implementação de fila no futuro sem alterar os fluxos de autenticação.
-
-## Docker (deploy e teste)
-
-### Subir ambiente de teste local (com Mailpit)
-```bash
-cp .env.test.example .env.test
-docker compose --env-file .env.test -f docker-compose.test.yml up -d
+```powershell
+.\mvnw.cmd spring-boot:run -Dspring-boot.run.profiles=dev
 ```
 
-Serviços:
-- Redis: `localhost:6379`
-- Mailpit UI: `http://localhost:8025`
+No Linux ou macOS, substitua `.\mvnw.cmd` por `./mvnw`.
 
-Para derrubar:
-```bash
-docker compose --env-file .env.test -f docker-compose.test.yml down
+Serviços úteis:
+
+- API: `http://localhost:8080`
+- Health check: `http://localhost:8080/actuator/health`
+- Swagger UI em desenvolvimento: `http://localhost:8080/swagger-ui.html`
+- OpenAPI JSON em desenvolvimento: `http://localhost:8080/v3/api-docs`
+- Mailpit: `http://localhost:8025`
+
+Swagger e OpenAPI ficam desabilitados na configuração de produção.
+
+## Autenticação e aprovação
+
+O fluxo administrativo é:
+
+```text
+solicitação de cadastro
+        ↓
+usuário BASIC + PENDING
+        ↓
+aprovação por um DIRECTOR
+        ↓
+login liberado
+        ↓
+painel definido por roles e privilégios
 ```
 
-### Subir ambiente de deploy (com SMTP externo)
-```bash
-cp .env.deploy.example .env.deploy
-# edite .env.deploy com os dados reais de SMTP e domínio
-docker compose --env-file .env.deploy -f docker-compose.deploy.yml up -d --build
+No fluxo atual, o usuário solicitado já é marcado com o e-mail verificado para
+facilitar os testes. A aprovação da diretoria continua obrigatória.
+
+Rotas principais de autenticação:
+
+| Método e rota | Acesso |
+|---|---|
+| `POST /auth/register` | Público |
+| `POST /auth/login` | Público |
+| `GET /auth/me` | JWT |
+| `POST /refresh` | Refresh token |
+| `POST /auth/logout` | JWT |
+| `GET /mfa/setup` | JWT e privilégio MFA |
+| `POST /mfa/confirm` | JWT e privilégio MFA |
+| `POST /mfa/verify` | Token temporário de desafio |
+| `DELETE /mfa` | JWT e privilégio MFA |
+
+O access token deve ser enviado assim:
+
+```http
+Authorization: Bearer <token>
 ```
 
-Para derrubar:
-```bash
-docker compose --env-file .env.deploy -f docker-compose.deploy.yml down
+Tokens de desafio MFA não são aceitos como access tokens. Usuários pendentes,
+reprovados ou removidos também não mantêm acesso apenas por possuírem um JWT
+antigo.
+
+### Cargos e responsabilidades
+
+| Cargo | Responsabilidade |
+|---|---|
+| `BASIC` | Conta base aprovada, sem gestão administrativa por padrão |
+| `ADMIN` | Administração dos módulos concedidos por privilégios |
+| `DIRECTOR` | Administração completa e gestão da equipe |
+
+A diretoria pode listar usuários por estado, aprovar, reprovar, excluir e
+atribuir os cargos gerenciáveis `BASIC` e `ADMIN`. Contas `DIRECTOR` não podem
+ser criadas, rebaixadas ou excluídas por esse endpoint genérico.
+
+## APIs do domínio implementadas
+
+### Blog
+
+- Público: `GET /api/public/posts` e `GET /api/public/posts/{slug}`
+- Administrativo: CRUD em `/api/admin/posts`
+- Publicação: `PATCH /api/admin/posts/{id}/publish`
+- Retirada de publicação: `PATCH /api/admin/posts/{id}/unpublish`
+- Privilégio: `PRIV_BLOG_ADMIN`
+
+A API pública devolve somente posts publicados. O conteúdo é armazenado como
+HTML; todo cliente que o renderizar deve aplicar sanitização contra XSS.
+
+### Parceiros
+
+- Público: `GET /api/public/partners`
+- Administrativo: CRUD em `/api/admin/partners`
+- Privilégio: `PRIV_PARTNERS_ADMIN`
+
+A API pública devolve somente parceiros ativos, ordenados por `sortOrder`.
+
+### Gestão de usuários
+
+- Base: `/api/director/users`
+- Filtro de listagem: `PENDING`, `APPROVED` ou `REJECTED`
+- Privilégio: `PRIV_USER_MANAGEMENT`
+
+## Banco de dados
+
+O Flyway executa as migrations presentes em
+`src/main/resources/migrations`. O Hibernate usa
+`spring.jpa.hibernate.ddl-auto=validate`, portanto não cria nem corrige tabelas
+automaticamente.
+
+Para qualquer mudança estrutural:
+
+1. crie uma nova migration versionada;
+2. não edite uma migration que já tenha sido aplicada em ambientes
+   compartilhados;
+3. execute os testes com um banco limpo;
+4. não inclua dados fictícios de negócio.
+
+O volume `pgdata` do Docker mantém o PostgreSQL entre reinicializações.
+
+## Testes e build
+
+Os testes de integração utilizam Testcontainers e exigem Docker ativo:
+
+```powershell
+.\mvnw.cmd test
 ```
+
+Para gerar o pacote:
+
+```powershell
+.\mvnw.cmd clean package
+```
+
+O arquivo executável será criado em `target/`.
+
+## Segurança operacional
+
+Antes de publicar:
+
+- substitua as credenciais padrão do diretor e do PostgreSQL;
+- configure a chave de criptografia MFA;
+- autorize em CORS somente as origens reais do frontend;
+- use HTTPS;
+- mantenha as chaves RSA e segredos fora do repositório de produção;
+- configure SMTP real e um endereço remetente válido;
+- não exponha PostgreSQL ou Redis diretamente à internet;
+- mantenha Swagger desabilitado em produção;
+- preserve a sanitização do HTML também nos clientes da API.
+
+## Documentação complementar
+
+O arquivo `AGENTS.md` reúne o contrato, as regras de domínio, as permissões e as
+pendências planejadas do backend. Consulte-o antes de alterar rotas, payloads,
+status HTTP ou regras de autorização.

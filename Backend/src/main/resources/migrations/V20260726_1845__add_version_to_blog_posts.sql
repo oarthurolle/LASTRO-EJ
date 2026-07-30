@@ -1,0 +1,1 @@
+ALTER TABLE blog_posts ADD COLUMN version BIGINT DEFAULT 0;

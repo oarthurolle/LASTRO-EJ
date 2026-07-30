@@ -33,6 +33,16 @@
   cursor: pointer;
 }
 
+.partner-card__link {
+  width: 100%;
+  max-width: 15rem;
+  display: block;
+}
+
+.partner-card__link .partner-card {
+  max-width: none;
+}
+
 .partner-card__logo-wrapper {
   width: 9rem;
   height: 6rem;

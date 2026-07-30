@@ -10,6 +10,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
 import java.time.Duration;
@@ -39,10 +40,11 @@ public class EmailTokenService {
         return rawToken;
     }
 
+    @Transactional
     public User consume(String rawToken, EmailTokenType type) {
         String hash = hashToken(rawToken);
 
-        EmailToken token = emailTokenRepository.findByTokenHashAndType(hash, type)
+        EmailToken token = emailTokenRepository.findByTokenHashAndTypeForUpdate(hash, type)
                 .orElseThrow(() -> new BadCredentialsException("Token inválido"));
 
         if (token.isConsumed()) {

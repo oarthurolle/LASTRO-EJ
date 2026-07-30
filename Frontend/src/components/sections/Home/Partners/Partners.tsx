@@ -8,7 +8,8 @@ import Autoplay from "embla-carousel-autoplay";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import PartnerCard from "./PartnerCard";
-import { partnersMock } from "./partners.mock";
+import { fetchApi, parseApiResponse } from "../../../../auth/api";
+import type { Partner } from "./types";
 
 const autoplay = Autoplay({
   delay: 3500,
@@ -27,6 +28,29 @@ const Partners = () => {
   );
 
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [partners, setPartners] = useState<Partner[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadFailed, setLoadFailed] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+
+    void fetchApi("/api/public/partners")
+      .then((response) => parseApiResponse<Partner[]>(response))
+      .then((response) => {
+        if (active) setPartners(response);
+      })
+      .catch(() => {
+        if (active) setLoadFailed(true);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const scrollSnaps = emblaApi?.scrollSnapList() ?? [];
 
@@ -63,6 +87,10 @@ const Partners = () => {
     };
   }, [emblaApi]);
 
+  useEffect(() => {
+    emblaApi?.reInit();
+  }, [emblaApi, partners]);
+
   return (
     <section className="partners">
       <div className="container">
@@ -74,6 +102,19 @@ const Partners = () => {
           Conheça nossos parceiros
         </h2>
 
+        {loading ? (
+          <div className="partners__state" role="status">
+            Carregando parceiros...
+          </div>
+        ) : loadFailed ? (
+          <div className="partners__state">
+            Não foi possível carregar os parceiros agora.
+          </div>
+        ) : partners.length === 0 ? (
+          <div className="partners__state">
+            Novas parcerias serão apresentadas em breve.
+          </div>
+        ) : (
         <div className="partners__wrapper">
           <button
             className="partners__arrow partners__arrow--left"
@@ -88,7 +129,7 @@ const Partners = () => {
             ref={emblaRef}
           >
             <div className="partners__container">
-              {partnersMock.map((partner) => (
+              {partners.map((partner) => (
                 <div
                   key={partner.id}
                   className="partners__slide"
@@ -107,8 +148,9 @@ const Partners = () => {
             <ChevronRight size={26} />
           </button>
         </div>
+        )}
 
-        <div className="partners__dots">
+        {partners.length > 0 && <div className="partners__dots">
           {scrollSnaps.map((_, index) => (
             <button
               key={index}
@@ -121,7 +163,7 @@ const Partners = () => {
               aria-label={`Ir para slide ${index + 1}`}
             />
           ))}
-        </div>
+        </div>}
       </div>
     </section>
   );
