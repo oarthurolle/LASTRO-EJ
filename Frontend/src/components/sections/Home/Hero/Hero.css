@@ -4,7 +4,7 @@
   background: var(--gradient-bg);
   color: var(--color-text-light);
 
-  padding: var(--space-2xl) 0;
+  padding: 2rem 0;
   padding-bottom: 15rem;
   overflow: hidden;
 }
@@ -139,7 +139,7 @@
 @media (max-width: 480px) {
 
   .hero {
-    padding: 3rem 0;
+    padding: 2.5rem 0;
     padding-bottom: 6rem;
   }
 

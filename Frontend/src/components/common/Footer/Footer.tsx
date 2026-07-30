@@ -1,5 +1,6 @@
 import "./Footer.css";
 
+import { Link } from "react-router-dom";
 import { FaInstagram, FaLinkedin } from "react-icons/fa";
 import logo from "../../../assets/logos/logoWhite.png";
 
@@ -54,8 +55,8 @@ const Footer = () => {
                     className="footer__social-link"
                 >
                     <FaLinkedin />
-                </a>
-            </div>
+</a>
+        </div>
         </div>
 
         {/* Navegação */}
@@ -67,19 +68,19 @@ const Footer = () => {
           <ul>
 
             <li>
-              <a href="/">Início</a>
+              <Link to="/">Início</Link>
             </li>
 
             <li>
-              <a href="/sobre">Sobre Nós</a>
+              <Link to="/sobre-nos">Sobre Nós</Link>
             </li>
 
             <li>
-              <a href="/servicos">Serviços</a>
+              <Link to="/servicos">Serviços</Link>
             </li>
 
             <li>
-              <a href="/cases">Cases</a>
+              <Link to="/cases">Cases</Link>
             </li>
 
           </ul>
@@ -95,17 +96,17 @@ const Footer = () => {
           <ul>
 
             <li>
-              <a href="/blog">Blog</a>
+              <Link to="/blog">Blog</Link>
             </li>
 
             <li>
-              <a href="/contato">Contato</a>
+              <Link to="/contato">Contato</Link>
             </li>
 
             <li>
-              <a href="/privacidade">
+              <Link to="/privacidade">
                 Política de Privacidade
-              </a>
+              </Link>
             </li>
 
           </ul>
@@ -143,9 +144,9 @@ const Footer = () => {
             Empresa Júnior UERN
           </p>
 
-          <a href="/privacidade">
+          <Link to="/privacidade">
             Política de Privacidade
-          </a>
+          </Link>
 
         </div>
 

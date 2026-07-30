@@ -1,0 +1,127 @@
+.contact-banner {
+  padding: var(--space-2xl) 0;
+  background: transparent;
+}
+
+.contact-banner__content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-xl);
+
+  padding: 3rem;
+
+  border-radius: var(--radius-xl);
+
+  background: var(--color-card-dark);
+
+  border: .0625rem solid rgba(255, 255, 255, .08);
+}
+
+.contact-banner__text {
+  max-width: 34rem;
+}
+
+.contact-banner__title {
+  margin-bottom: .75rem;
+
+  color: var(--color-text-light);
+
+  font-family: var(--font-heading);
+  font-size: 2rem;
+  font-weight: var(--font-weight-bold);
+}
+
+.contact-banner__description {
+  color: var(--color-primary-300);
+
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+.contact-banner__buttons {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+
+  flex-shrink: 0;
+}
+
+.contact-banner__button {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+
+  min-width: 10.5rem;
+
+  padding: .95rem 1.75rem;
+
+  border-radius: var(--radius-full);
+
+  font-family: var(--font-body);
+  font-size: .95rem;
+  font-weight: var(--font-weight-semibold);
+
+  transition: var(--transition-normal);
+}
+
+.contact-banner__button--primary {
+  background: var(--color-button-bg);
+  color: var(--color-text-light);
+}
+
+.contact-banner__button--primary:hover {
+  background: var(--color-button-bg-hover);
+  transform: translateY(-.125rem);
+}
+
+.contact-banner__button--secondary {
+  color: var(--color-text-light);
+
+  border: .0625rem solid rgba(255,255,255,.35);
+}
+
+.contact-banner__button--secondary:hover {
+  background: rgba(255,255,255,.08);
+  border-color: rgba(255,255,255,.6);
+  transform: translateY(-.125rem);
+}
+
+@media (max-width: 62rem) {
+
+  .contact-banner__content {
+    flex-direction: column;
+    align-items: flex-start;
+
+    padding: 2rem;
+  }
+
+  .contact-banner__buttons {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+}
+
+@media (max-width: 48rem) {
+
+  .contact-banner {
+    padding: var(--space-xl) 0;
+  }
+
+  .contact-banner__title {
+    font-size: 1.6rem;
+  }
+
+  .contact-banner__buttons {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .contact-banner__button {
+    width: 100%;
+  }
+
+}

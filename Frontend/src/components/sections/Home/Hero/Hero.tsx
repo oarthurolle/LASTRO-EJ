@@ -1,12 +1,15 @@
 import "./Hero.css";
 
+import { useNavigate } from "react-router-dom";
+
 import Button from "../../../common/Button";
 
 import logoHero from "../../../../assets/logos/logoWhite.png";
 
-import decorativeImage from "../../../../assets/images/decorativeRipples.png";
+import decorativeImage from "../../../../assets/images/Home/decorativeRipples.png";
 
 export default function Hero() {
+  const navigate = useNavigate();
   return (
     <section className="hero">
       <div className="container hero__container">
@@ -26,11 +29,14 @@ export default function Hero() {
           </p>
 
           <div className="hero__buttons">
-            <Button>
+            <Button onClick={() => navigate("/contato")}>
               Marcar reunião
             </Button>
 
-            <Button variant="secondary">
+            <Button
+              variant="secondary"
+              onClick={() => navigate("/servicos")}
+            >
               Conheça nossos serviços
             </Button>
           </div>

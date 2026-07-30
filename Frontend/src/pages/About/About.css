@@ -1,0 +1,7 @@
+.about {
+  min-height: 100vh;
+
+  background: var(--gradient-bg);
+
+  overflow-x: hidden;
+}

@@ -1,7 +1,9 @@
 import "./Navbar.css";
 import { useState } from "react";
+import { NavLink } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import logoBlue from "./../../../assets/logos/logoBlue.png";
+
 
 export function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -11,7 +13,7 @@ export function Navbar() {
       <div className="navbar-container">
 
         <div className="navbar-logo">
-          <a href="/">
+          <NavLink to="/">
             <div className="logo-icon">
               <img src={logoBlue} alt="Logo LASTRO" />
             </div>
@@ -23,7 +25,7 @@ export function Navbar() {
                 Consultoria & Investimentos
               </span>
             </div>
-          </a>
+          </NavLink>
         </div>
 
         <button
@@ -36,39 +38,39 @@ export function Navbar() {
 
         <ul className={`navbar-menu ${menuOpen ? "active" : ""}`}>
           <li>
-            <a href="/" onClick={() => setMenuOpen(false)}>
+            <NavLink to="/" onClick={() => setMenuOpen(false)}>
               Início
-            </a>
+            </NavLink>
           </li>
 
           <li>
-            <a href="/sobre" onClick={() => setMenuOpen(false)}>
+            <NavLink to="/sobre-nos" onClick={() => setMenuOpen(false)}>
               Sobre nós
-            </a>
+            </NavLink>
           </li>
 
           <li>
-            <a href="/servicos" onClick={() => setMenuOpen(false)}>
+            <NavLink to="/servicos" onClick={() => setMenuOpen(false)}>
               Serviços
-            </a>
+            </NavLink>
           </li>
 
           <li>
-            <a href="/casos" onClick={() => setMenuOpen(false)}>
+            <NavLink to="/cases" onClick={() => setMenuOpen(false)}>
               Cases
-            </a>
+            </NavLink>
           </li>
 
           <li>
-            <a href="/blog" onClick={() => setMenuOpen(false)}>
+            <NavLink to="/blog" onClick={() => setMenuOpen(false)}>
               Blog
-            </a>
+            </NavLink>
           </li>
 
           <li>
-            <a href="/contato" onClick={() => setMenuOpen(false)}>
+            <NavLink to="/contato" onClick={() => setMenuOpen(false)}>
               Contato
-            </a>
+            </NavLink>
           </li>
         </ul>
 
