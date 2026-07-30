@@ -4,6 +4,8 @@ import { Navbar } from "./components/common/NavBar/Navbar";
 import Footer from "./components/common/Footer/Footer";
 
 import Home from "./pages/Home/Home";
+import About from "./pages/About/About";
+import Services from "./pages/Services/Services";
 import { AuthProvider } from "./auth/AuthContext";
 import AdminAccess from "./pages/Auth/AdminAccess";
 import Blog from "./pages/Blog/Blog";
