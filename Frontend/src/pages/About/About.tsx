@@ -10,7 +10,7 @@ export default function About() {
   return (
     <>
       
-      <main className="about">
+      <section className="about">
         <Hero />
          <Indicators
             theme="dark"
@@ -20,7 +20,7 @@ export default function About() {
         <Essence />
         <Differential />
         <UERN />
-      </main>
+      </section>
     </>
   );
 }

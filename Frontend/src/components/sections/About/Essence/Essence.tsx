@@ -18,7 +18,7 @@ export default function Essence() {
 
         <SectionTitle
           subtitle="Nossa Essência"
-          title=""
+          title="Missão, Visão e Valores"
           align="left"
         />
 
