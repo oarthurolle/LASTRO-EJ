@@ -70,31 +70,19 @@ function App() {
     );
   }
 
+export default function App() {
   return (
-    <div className="app">
-
-      <Navbar />
-
-      <main className="main-content">
-
+    <BrowserRouter>
+      <ToastProvider>
         <Routes>
+          <Route path="/cases" element={<Cases />} />
+          <Route path="/cases/:id" element={<CaseDetalhe />} />
 
-          <Route path="/" element={<Home />} />
-
-          <Route
-            path="/sobre-nos"
-            element={<About />}
-          />
-          <Route path="/servicos" element={<Services />} />
-
+          <Route path="/admin/cases" element={<AdminCasesLista />} />
+          <Route path="/admin/cases/novo" element={<AdminCasesForm />} />
+          <Route path="/admin/cases/:id/editar" element={<AdminCasesForm />} />
         </Routes>
-
-      </main>
-
-      <Footer />
-
-    </div>
+      </ToastProvider>
+    </BrowserRouter>
   );
 }
-
-export default App;

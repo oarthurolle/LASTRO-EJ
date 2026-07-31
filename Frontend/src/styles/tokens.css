@@ -1,0 +1,42 @@
+:root{
+  /* Marca / site público */
+  --bg: #1c1a4a;
+  --bg-deep: #16143c;
+  --card: #29276a;
+  --card-soft: #241f5e;
+  --accent: #5470ff;
+  --accent-soft: #7d94ff;
+  --wave: #7bd3d8;
+  --text: #ffffff;
+  --muted: #b6b3d9;
+  --muted-soft: #9c99c4;
+  --line: rgba(255,255,255,0.12);
+  --radius: 18px;
+
+  /* Admin */
+  --brand: #5470ff;
+  --brand-soft: #eef0ff;
+  --brand-dark: #16143c;
+  --admin-bg: #f3f4f9;
+  --surface: #ffffff;
+  --surface-alt: #f8f9fd;
+  --border: #e5e6f0;
+  --admin-text: #201f3d;
+  --admin-muted: #6b6b85;
+  --admin-muted-soft: #9695ab;
+  --green: #1f9d55;
+  --green-bg: #e8f8ee;
+  --amber: #b9790a;
+  --amber-bg: #fdf3e0;
+  --red: #d64545;
+  --red-bg: #fceaea;
+}
+
+*{margin:0; padding:0; box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+a{color:inherit; text-decoration:none;}
+ul{list-style:none;}
+img{max-width:100%; display:block;}
+button{font-family:inherit; cursor:pointer;}
+input, textarea, select{font-family:inherit;}
+h1,h2,h3,h4{font-family:'Sora', sans-serif; line-height:1.15; font-weight:700;}
