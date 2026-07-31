@@ -142,43 +142,55 @@ function BlogListing() {
             Conteúdos sobre finanças, gestão e mercado produzidos pela equipe
             da LASTRO.
           </p>
-          <form className="blog-search" onSubmit={submitSearch}>
-            <Search size={19} />
-            <input
-              value={searchInput}
-              placeholder="Busque por um tema ou palavra-chave"
-              aria-label="Buscar artigos"
-              onChange={(event) => setSearchInput(event.target.value)}
-            />
-            <button type="submit">Buscar</button>
-          </form>
         </div>
       </header>
 
       <section className="blog-content container">
-        <div className="blog-filters">
-          <div>
-            <strong>{totalElements}</strong>
-            <span>{totalElements === 1 ? " artigo encontrado" : " artigos encontrados"}</span>
+        <div className="blog-toolbar">
+          <div className="blog-toolbar__top">
+            <form className="blog-search" onSubmit={submitSearch}>
+              <Search size={18} aria-hidden="true" />
+              <input
+                type="search"
+                value={searchInput}
+                placeholder="Busque por título, tema ou palavra-chave"
+                aria-label="Buscar artigos"
+                onChange={(event) => setSearchInput(event.target.value)}
+              />
+              <button type="submit">Buscar</button>
+            </form>
+
+            <p className="blog-results" aria-live="polite">
+              <strong>{totalElements}</strong>
+              {totalElements === 1
+                ? " artigo encontrado"
+                : " artigos encontrados"}
+            </p>
           </div>
-          <div role="group" aria-label="Filtrar por categoria">
-            <button
-              type="button"
-              className={!category ? "is-active" : ""}
-              onClick={() => selectCategory("")}
-            >
-              Todos
-            </button>
-            {CATEGORIES.map((item) => (
+
+          <div className="blog-toolbar__bottom">
+            <span>Filtrar por tema</span>
+
+            <div className="blog-filters" role="group" aria-label="Filtrar por categoria">
               <button
                 type="button"
-                className={category === item ? "is-active" : ""}
-                key={item}
-                onClick={() => selectCategory(item)}
+                className={!category ? "is-active" : ""}
+                onClick={() => selectCategory("")}
               >
-                {item}
+                Todos
               </button>
-            ))}
+
+              {CATEGORIES.map((item) => (
+                <button
+                  type="button"
+                  className={category === item ? "is-active" : ""}
+                  key={item}
+                  onClick={() => selectCategory(item)}
+                >
+                  {item}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 

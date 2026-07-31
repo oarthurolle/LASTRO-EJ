@@ -3,8 +3,8 @@ import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { type Case, SERVICE_CATEGORIES } from "../../types/case";
 import { getPublicCases } from "../../services/casesApi";
-import Header from "../../components/site/Header";
-import Footer from "../../components/site/Footer";
+import { Navbar } from "../../components/common/NavBar/Navbar";
+import Footer from "../../components/common/Footer/Footer";
 
 const CATEGORIAS = ["Todos", ...SERVICE_CATEGORIES];
 const PAGE_SIZE = 6;
@@ -33,33 +33,40 @@ export default function Cases() {
   const visiveis = filtrados.slice(0, visibleCount);
   const primeiroComDepoimento = cases.find((c) => c.testimonial);
 
-  function formatDateBR(_projectDate: string): import("react").ReactNode {
-    throw new Error("Function not implemented.");
+  function formatDateBR(projectDate: string) {
+    return new Intl.DateTimeFormat("pt-BR", {
+      month: "long",
+      year: "numeric",
+      timeZone: "UTC",
+    }).format(new Date(projectDate));
   }
 
   return (
     <>
-      <Header />
-      <main className="wrap" style={{ paddingTop: 0 }}>
-        <section className="hero">
-          <span className="eyebrow">Casos</span>
-          <h1>Conheça nossos projetos</h1>
+      <Navbar />
+      <main className="cases-page">
+        <section className="cases-hero">
+          <div className="wrap">
+            <span className="eyebrow">Casos</span>
+            <h1>Conheça nossos projetos</h1>
+          </div>
         </section>
 
-        <div className="filter-row">
-          {CATEGORIAS.map((cat) => (
-            <button
-              key={cat}
-              className={"pill" + (categoria === cat ? " active" : "")}
-              onClick={() => { setCategoria(cat); setVisibleCount(PAGE_SIZE); }}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
+        <div className="wrap cases-content">
+          <div className="filter-row">
+            {CATEGORIAS.map((cat) => (
+              <button
+                key={cat}
+                className={"pill" + (categoria === cat ? " active" : "")}
+                onClick={() => { setCategoria(cat); setVisibleCount(PAGE_SIZE); }}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
 
-        {carregando && <p style={{ textAlign: "center", color: "var(--muted)" }}>Carregando cases...</p>}
-        {erro && <p style={{ textAlign: "center", color: "var(--muted)" }}>{erro}</p>}
+          {carregando && <p style={{ textAlign: "center", color: "var(--muted)" }}>Carregando cases...</p>}
+          {erro && <p style={{ textAlign: "center", color: "var(--muted)" }}>{erro}</p>}
 
         {!carregando && !erro && (
           <>
@@ -120,17 +127,18 @@ export default function Cases() {
           </section>
         )}
 
-        <section className="closing-cta">
-          <h2>Sua empresa pode ser a próxima história de sucesso.</h2>
-          <a
-            href="https://wa.me/5584998009936?text=Ol%C3%A1!%20Vi%20os%20cases%20de%20sucesso%20da%20Lastro%20e%20gostaria%20de%20falar%20com%20um%20consultor."
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn-primary"
-          >
-            Falar com um consultor
-          </a>
-        </section>
+          <section className="closing-cta">
+            <h2>Sua empresa pode ser a próxima história de sucesso.</h2>
+            <a
+              href="https://wa.me/5584998009936?text=Ol%C3%A1!%20Vi%20os%20cases%20de%20sucesso%20da%20Lastro%20e%20gostaria%20de%20falar%20com%20um%20consultor."
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-primary"
+            >
+              Falar com um consultor
+            </a>
+          </section>
+        </div>
       </main>
       <Footer />
     </>

@@ -3,8 +3,8 @@ import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { type Case } from "../../types/case";
 import { getPublicCaseById } from "../../services/casesApi";
-import Header from "../../components/site/Header";
-import Footer from "../../components/site/Footer";
+import { Navbar } from "../../components/common/NavBar/Navbar";
+import Footer from "../../components/common/Footer/Footer";
 
 export default function CaseDetalhe() {
   const { id } = useParams<{ id: string }>();
@@ -24,7 +24,7 @@ export default function CaseDetalhe() {
   if (carregando) {
     return (
       <>
-        <Header />
+        <Navbar />
         <main className="wrap"><p style={{ padding: "60px 0", color: "var(--muted)" }}>Carregando case...</p></main>
         <Footer />
       </>
@@ -34,7 +34,7 @@ export default function CaseDetalhe() {
   if (erro || !c) {
     return (
       <>
-        <Header />
+        <Navbar />
         <main className="wrap">
           <p style={{ padding: "60px 0", color: "var(--muted)" }}>{erro || "Case não encontrado."}</p>
           <Link to="/cases" className="back-link">← Voltar para os cases</Link>
@@ -44,13 +44,17 @@ export default function CaseDetalhe() {
     );
   }
 
-  function formatDateBR(_projectDate: string): import("react").ReactNode {
-    throw new Error("Function not implemented.");
+  function formatDateBR(projectDate: string) {
+    return new Intl.DateTimeFormat("pt-BR", {
+      month: "long",
+      year: "numeric",
+      timeZone: "UTC",
+    }).format(new Date(projectDate));
   }
 
   return (
     <>
-      <Header />
+      <Navbar />
       <main className="wrap">
         <Link to="/cases" className="back-link">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6" /></svg>

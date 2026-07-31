@@ -1,5 +1,6 @@
 body{font-family:'Inter', sans-serif; background:var(--bg); color:var(--text); line-height:1.55; overflow-x:hidden;}
 .wrap{max-width:1180px; margin:0 auto; padding:0 32px;}
+.cases-page{min-height:100vh; background:var(--bg); color:var(--text);}
 .eyebrow{font-size:13px; font-weight:700; letter-spacing:1.5px; color:var(--accent-soft); text-transform:uppercase; margin-bottom:14px; display:block; text-align:center;}
 
 /* ---------- HEADER ---------- */
@@ -20,11 +21,12 @@ nav.main-nav a.active::after{content:''; position:absolute; left:0; right:0; bot
 .menu-toggle span{display:block; width:22px; height:2px; background:#1c1a4a; margin:5px 0; border-radius:2px;}
 
 /* ---------- HERO ---------- */
-.hero{padding:64px 0 44px; text-align:center;}
-.hero h1{font-size:36px; max-width:640px; margin:0 auto;}
+.cases-hero{width:100%; padding:64px 0 58px; text-align:center; background:linear-gradient(135deg,var(--bg-deep),var(--card-soft));}
+.cases-hero h1{font-size:36px; max-width:640px; margin:0 auto;}
+.cases-content{padding-top:0;}
 
 /* ---------- FILTER PILLS ---------- */
-.filter-row{display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin-bottom:44px;}
+.filter-row{display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin:-25px auto 44px; position:relative; z-index:1;}
 .pill{background:var(--card-soft); border:1px solid var(--line); color:var(--muted); font-size:13.5px; font-weight:600; padding:9px 17px; border-radius:999px; transition:all .2s ease;}
 .pill:hover{border-color:var(--accent-soft); color:#fff;}
 .pill.active{background:var(--accent); border-color:var(--accent); color:#fff;}
@@ -138,7 +140,7 @@ footer .footer-col a:hover{color:var(--accent-soft);}
   .footer-grid{grid-template-columns:1fr 1fr; gap:36px;}
   .footer-bottom{flex-direction:column; gap:8px; text-align:center;}
   .wrap{padding:0 20px;}
-  .hero h1{font-size:28px;}
+  .cases-hero h1{font-size:28px;}
   .detail-hero-content{left:20px; right:20px;}
   .detail-hero h1{font-size:23px;}
   .flow-stepper{max-width:100%;}

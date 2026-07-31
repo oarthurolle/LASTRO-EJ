@@ -1,88 +1,170 @@
-import { Routes, Route } from "react-router-dom";
+import type { ReactNode } from "react";
+import {
+  Navigate,
+  Route,
+  Routes,
+} from "react-router-dom";
 
-import { Navbar } from "./components/common/NavBar/Navbar";
-import Footer from "./components/common/Footer/Footer";
-
-import Home from "./pages/Home/Home";
-import About from "./pages/About/About";
-import Services from "./pages/Services/Services";
 import { AuthProvider } from "./auth/AuthContext";
+import { ToastProvider } from "./components/admin/Toast";
+import Footer from "./components/common/Footer/Footer";
+import { Navbar } from "./components/common/NavBar/Navbar";
+
+import About from "./pages/About/About";
 import AdminAccess from "./pages/Auth/AdminAccess";
 import Blog from "./pages/Blog/Blog";
+import Home from "./pages/Home/Home";
+import Services from "./pages/Services/Services";
 import UnavailablePage from "./pages/Unavailable/UnavailablePage";
 
-const UNAVAILABLE_ROUTES: Record<string, string> = {
-  "/sobre": "Sobre nós",
-  "/servicos": "Serviços",
-  "/casos": "Cases de sucesso",
-  "/cases": "Cases de sucesso",
-  "/contato": "Contato",
-  "/privacidade": "Política de Privacidade",
-};
+import AdminCasesForm from "./pages/Admin/AdminCasesForm";
+import AdminCasesLista from "./pages/Admin/AdminCasesLista";
+import CaseDetalhe from "./pages/site/CaseDetalhe";
+import Cases from "./pages/site/Cases";
 
-function App() {
-  const pathname =
-    window.location.pathname.replace(/\/+$/, "").toLocaleLowerCase("pt-BR") ||
-    "/";
+function PublicLayout({ children }: { children: ReactNode }) {
+  return (
+    <div className="app">
+      <Navbar />
 
-  if (pathname === "/admin" || pathname.startsWith("/admin/")) {
-    return (
-      <AuthProvider>
-        <AdminAccess />
-      </AuthProvider>
-    );
-  }
+      <main className="main-content">
+        {children}
+      </main>
 
-  if (pathname === "/blog" || pathname.startsWith("/blog/")) {
-    return (
-      <div className="app">
-        <Navbar />
-        <main className="main-content">
-          <Blog />
-        </main>
-        <Footer />
-      </div>
-    );
-  }
+      <Footer />
+    </div>
+  );
+}
 
-  const unavailableTitle = UNAVAILABLE_ROUTES[pathname];
-  if (unavailableTitle) {
-    return (
-      <div className="app">
-        <Navbar />
-        <main className="main-content">
-          <UnavailablePage title={unavailableTitle} />
-        </main>
-        <Footer />
-      </div>
-    );
-  }
-
-  if (pathname !== "/") {
-    return (
-      <div className="app">
-        <Navbar />
-        <main className="main-content">
-          <UnavailablePage title="Não encontramos esta página" notFound />
-        </main>
-        <Footer />
-      </div>
-    );
-  }
+function AdminLayout({ children }: { children: ReactNode }) {
+  return (
+    <AuthProvider>
+      <ToastProvider>
+        {children}
+      </ToastProvider>
+    </AuthProvider>
+  );
+}
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <ToastProvider>
-        <Routes>
-          <Route path="/cases" element={<Cases />} />
-          <Route path="/cases/:id" element={<CaseDetalhe />} />
+    <Routes>
+      <Route
+        path="/"
+        element={
+          <PublicLayout>
+            <Home />
+          </PublicLayout>
+        }
+      />
 
-          <Route path="/admin/cases" element={<AdminCasesLista />} />
-          <Route path="/admin/cases/novo" element={<AdminCasesForm />} />
-          <Route path="/admin/cases/:id/editar" element={<AdminCasesForm />} />
-        </Routes>
-      </ToastProvider>
-    </BrowserRouter>
+      <Route
+        path="/sobre-nos"
+        element={
+          <PublicLayout>
+            <About />
+          </PublicLayout>
+        }
+      />
+
+      <Route
+        path="/sobre"
+        element={<Navigate to="/sobre-nos" replace />}
+      />
+
+      <Route
+        path="/servicos"
+        element={
+          <PublicLayout>
+            <Services />
+          </PublicLayout>
+        }
+      />
+
+      <Route
+        path="/blog/*"
+        element={
+          <PublicLayout>
+            <Blog />
+          </PublicLayout>
+        }
+      />
+
+      <Route
+        path="/cases"
+        element={<Cases />}
+      />
+
+      <Route
+        path="/cases/:id"
+        element={<CaseDetalhe />}
+      />
+
+      <Route
+        path="/contato"
+        element={
+          <PublicLayout>
+            <UnavailablePage title="Contato" />
+          </PublicLayout>
+        }
+      />
+
+      <Route
+        path="/privacidade"
+        element={
+          <PublicLayout>
+            <UnavailablePage title="Política de Privacidade" />
+          </PublicLayout>
+        }
+      />
+
+      <Route
+        path="/admin/cases"
+        element={
+          <AdminLayout>
+            <AdminCasesLista />
+          </AdminLayout>
+        }
+      />
+
+      <Route
+        path="/admin/cases/novo"
+        element={
+          <AdminLayout>
+            <AdminCasesForm />
+          </AdminLayout>
+        }
+      />
+
+      <Route
+        path="/admin/cases/:id/editar"
+        element={
+          <AdminLayout>
+            <AdminCasesForm />
+          </AdminLayout>
+        }
+      />
+
+      <Route
+        path="/admin/*"
+        element={
+          <AdminLayout>
+            <AdminAccess />
+          </AdminLayout>
+        }
+      />
+
+      <Route
+        path="*"
+        element={
+          <PublicLayout>
+            <UnavailablePage
+              title="Não encontramos esta página"
+              notFound
+            />
+          </PublicLayout>
+        }
+      />
+    </Routes>
   );
 }
