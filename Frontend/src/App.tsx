@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, BrowserRouter, Outlet } from "react-router-dom";
 
 import { Navbar } from "./components/common/NavBar/Navbar";
 import Footer from "./components/common/Footer/Footer";
@@ -10,79 +10,96 @@ import { AuthProvider } from "./auth/AuthContext";
 import AdminAccess from "./pages/Auth/AdminAccess";
 import Blog from "./pages/Blog/Blog";
 import UnavailablePage from "./pages/Unavailable/UnavailablePage";
+import { ToastProvider } from "./components/admin/Toast.tsx";
+import Cases from "./pages/site/Cases.tsx";
+import CaseDetalhe from "./pages/site/CaseDetalhe.tsx";
+import AdminCasesLista from "./pages/Admin/AdminCasesLista.tsx";
+import AdminCasesForm from "./pages/Admin/AdminCasesForm.tsx";
 
-const UNAVAILABLE_ROUTES: Record<string, string> = {
-  "/sobre": "Sobre nós",
-  "/servicos": "Serviços",
-  "/casos": "Cases de sucesso",
-  "/cases": "Cases de sucesso",
-  "/contato": "Contato",
-  "/privacidade": "Política de Privacidade",
+const AppLayout = () => {
+  return (
+    <div className="app">
+      <Navbar />
+      <Outlet />
+      <Footer />
+    </div>
+  );
 };
 
-function App() {
-  const pathname =
-    window.location.pathname.replace(/\/+$/, "").toLocaleLowerCase("pt-BR") ||
-    "/";
-
-  if (pathname === "/admin" || pathname.startsWith("/admin/")) {
-    return (
-      <AuthProvider>
-        <AdminAccess />
-      </AuthProvider>
-    );
-  }
-
-  if (pathname === "/blog" || pathname.startsWith("/blog/")) {
-    return (
-      <div className="app">
-        <Navbar />
-        <main className="main-content">
-          <Blog />
-        </main>
-        <Footer />
-      </div>
-    );
-  }
-
-  const unavailableTitle = UNAVAILABLE_ROUTES[pathname];
-  if (unavailableTitle) {
-    return (
-      <div className="app">
-        <Navbar />
-        <main className="main-content">
-          <UnavailablePage title={unavailableTitle} />
-        </main>
-        <Footer />
-      </div>
-    );
-  }
-
-  if (pathname !== "/") {
-    return (
-      <div className="app">
-        <Navbar />
-        <main className="main-content">
-          <UnavailablePage title="Não encontramos esta página" notFound />
-        </main>
-        <Footer />
-      </div>
-    );
-  }
+const MainContentLayout = () => {
+  return (
+    <div className="app">
+      <Navbar />
+      <main className="main-content">
+        <Outlet />
+      </main>
+      <Footer />
+    </div>
+  );
+};
 
 export default function App() {
   return (
     <BrowserRouter>
-      <ToastProvider>
-        <Routes>
-          <Route path="/cases" element={<Cases />} />
-          <Route path="/cases/:id" element={<CaseDetalhe />} />
+      <AuthProvider>
+        <ToastProvider>
+          <Routes>
+            {/* Base App Layout (No main-co.ntent wrapper) */}
+            <Route element={<AppLayout />}>
+              <Route path="/" element={<Home />} />
+              <Route path="/sobre" element={<About />} />
+              <Route path="/servicos" element={<Services />} />
+              <Route path="/cases" element={<Cases />} />
+              <Route path="/cases/:id" element={<CaseDetalhe />} />
+            </Route>
 
-          <Route path="/admin/cases" element={<AdminCasesLista />} />
-          <Route path="/admin/cases/novo" element={<AdminCasesForm />} />
-          <Route path="/admin/cases/:id/editar" element={<AdminCasesForm />} />
-        </Routes>
-      </ToastProvider>
+            {/* Layout with main-content wrapper */}
+            <Route element={<MainContentLayout />}>
+              <Route path="/blog/*" element={<Blog />} />
+              
+              {/* Unavailable Pages */}
+              <Route path="/casos" element={<UnavailablePage title="Cases de sucesso" />} />
+              <Route path="/contato" element={<UnavailablePage title="Contato" />} />
+              <Route path="/privacidade" element={<UnavailablePage title="Política de Privacidade" />} />
+              
+              {/* Not Found */}
+              <Route path="*" element={<UnavailablePage title="Não encontramos esta página" notFound />} />
+            </Route>
+
+            {/* Standalone Routes (Pages handle their own Header/Footer) */}
+            {/* removed /cases and /cases/:id from here */}
+
+            {/* Admin Dashboard */}
+            <Route path="/admin" element={<AdminAccess />} />
+
+            {/* Admin Nested Routes (Protected) */}
+            <Route 
+              path="/admin/cases" 
+              element={
+                <AdminAccess>
+                  <AdminCasesLista />
+                </AdminAccess>
+              } 
+            />
+            <Route 
+              path="/admin/cases/novo" 
+              element={
+                <AdminAccess>
+                  <AdminCasesForm />
+                </AdminAccess>
+              } 
+            />
+            <Route 
+              path="/admin/cases/:id/editar" 
+              element={
+                <AdminAccess>
+                  <AdminCasesForm />
+                </AdminAccess>
+              } 
+            />
+          </Routes>
+        </ToastProvider>
+      </AuthProvider>
     </BrowserRouter>
   );
 }

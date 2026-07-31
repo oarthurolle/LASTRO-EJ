@@ -14,7 +14,7 @@ const ADMIN_PRIVILEGES = [
   "PRIV_COMPANY_INFO_ADMIN",
 ];
 
-export default function AdminAccess() {
+export default function AdminAccess({ children }: { children?: React.ReactNode }) {
   const { status, user, logout } = useAuth();
 
   if (status === "loading") {
@@ -61,5 +61,5 @@ export default function AdminAccess() {
     );
   }
 
-  return <Admin />;
+  return children ? <>{children}</> : <Admin />;
 }
