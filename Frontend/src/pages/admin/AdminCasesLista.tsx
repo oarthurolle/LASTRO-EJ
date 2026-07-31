@@ -51,8 +51,10 @@ export default function AdminCasesLista() {
     }
   }
 
-  function formatDateBR(_projectDate: string): import("react").ReactNode {
-    throw new Error("Function not implemented.");
+  function formatDateBR(dateString: string) {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("pt-BR", { month: "short", year: "numeric" });
   }
 
   return (

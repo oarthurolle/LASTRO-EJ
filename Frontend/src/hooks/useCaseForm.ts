@@ -44,7 +44,6 @@ export function useCaseForm(id?: string): UseCaseFormResult {
 
   useEffect(() => {
     if (!editando || !id) return;
-    setCarregandoCase(true);
     getAdminCaseById(Number(id))
       .then((c: Case) => {
         setClientName(c.clientName);

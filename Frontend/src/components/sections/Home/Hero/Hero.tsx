@@ -19,7 +19,7 @@ export default function Hero() {
           </span>
 
           <h1 className="hero__title">
-            O <span className="hero__highlight">Lastro</span> que sustenta as decisões financeiras do seu negócio.
+            O <span className="hero__highlight">LASTRO</span> que sustenta as decisões financeiras do seu negócio.
           </h1>
 
           <p className="hero__description">
