@@ -28,6 +28,7 @@ import { useAuth } from "../../auth/useAuth";
 import BlogManager from "./components/BlogManager";
 import PartnerManager from "./components/PartnerManager";
 import TeamManager from "./components/TeamManager";
+import IndicatorManager from "./components/IndicatorManager";
 import type { AdminSection, BlogPost } from "./types";
 import { formatDate, initials } from "./utils";
 import "./Admin.css";
@@ -71,6 +72,7 @@ const CONTENT_NAVIGATION: NavigationItem[] = [
     id: "indicators",
     label: "Indicadores",
     icon: ChartNoAxesCombined,
+    available: true,
     privilege: "PRIV_INDICATORS_ADMIN",
   },
 ];
@@ -92,6 +94,7 @@ const SYSTEM_NAVIGATION: NavigationItem[] = [
     id: "team",
     label: "Equipe e acessos",
     icon: UsersRound,
+    available: true,
     privilege: "PRIV_USER_MANAGEMENT",
   },
 ];
@@ -524,8 +527,11 @@ export default function Admin() {
     if (activeSection === "team") {
       return <TeamManager onNotify={setNotification} />;
     }
+    if (activeSection === "indicators") {
+      return <IndicatorManager onNotify={setNotification} />;
+    }
 
-    return <PlaceholderModule section={activeSection} />;
+    return <PlaceholderModule section={activeSection as any} />;
   }
 
   return (
