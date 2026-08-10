@@ -28,12 +28,13 @@ gestão de parceiros e o fluxo de aprovação de novos usuários.
 - CRUD administrativo e consulta pública de posts
 - Estados `DRAFT`, `PUBLISHED` e `UNPUBLISHED` para posts
 - CRUD administrativo e listagem pública de parceiros ativos
+- CRUD administrativo de indicadores e consulta pública para a home
 - Upload local de capas do blog e logos de parceiros com volume persistente
 - Fila Redis para envio de e-mails
 - Erros HTTP em JSON
 - Migrations versionadas e validação do schema na inicialização
 
-Cases, indicadores e contatos fazem parte do domínio planejado, mas seus fluxos
+Cases e contatos fazem parte do domínio planejado, mas seus fluxos
 completos ainda não estão disponíveis na aplicação atual.
 
 ## Pré-requisitos
