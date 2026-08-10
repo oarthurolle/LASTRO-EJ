@@ -68,6 +68,7 @@ export default function ImageUploadField({
       onChange(uploaded.url);
       setPreviewUrl("");
     } catch (uploadFailure) {
+      setPreviewUrl("");
       setUploadError(
         uploadFailure instanceof Error
           ? uploadFailure.message
