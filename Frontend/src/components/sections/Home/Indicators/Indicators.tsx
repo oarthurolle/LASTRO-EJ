@@ -1,5 +1,7 @@
+import { useEffect, useState } from "react";
 import "./Indicators.css";
-import { indicators } from "./data";
+import { getPublicIndicators } from "../../../../services/indicatorsApi";
+import type { Indicator } from "../../../../types/indicator";
 
 interface IndicatorsProps {
   theme?: "light" | "dark";
@@ -10,6 +12,16 @@ const Indicators = ({
   theme = "light",
   floating = true,
 }: IndicatorsProps) => {
+  const [indicators, setIndicators] = useState<Indicator[]>([]);
+
+  useEffect(() => {
+    let active = true;
+    getPublicIndicators().then((data) => {
+      if (active) setIndicators(data);
+    }).catch(console.error);
+    return () => { active = false; };
+  }, []);
+
   return (
     <section
       className={`

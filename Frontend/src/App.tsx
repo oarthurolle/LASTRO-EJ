@@ -13,8 +13,8 @@ import UnavailablePage from "./pages/Unavailable/UnavailablePage";
 import { ToastProvider } from "./components/admin/Toast.tsx";
 import Cases from "./pages/site/Cases.tsx";
 import CaseDetalhe from "./pages/site/CaseDetalhe.tsx";
-import AdminCasesLista from "./pages/Admin/AdminCasesLista.tsx";
-import AdminCasesForm from "./pages/Admin/AdminCasesForm.tsx";
+import AdminCasesLista from "./pages/admin/AdminCasesLista.tsx";
+import AdminCasesForm from "./pages/admin/AdminCasesForm.tsx";
 
 const AppLayout = () => {
   return (

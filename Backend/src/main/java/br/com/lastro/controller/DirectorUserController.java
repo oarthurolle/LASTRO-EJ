@@ -45,6 +45,26 @@ public class DirectorUserController {
         return ResponseEntity.ok(userService.rejectUser(id));
     }
 
+    @PatchMapping("/{id}/revoke-admin")
+    @PreAuthorize("hasRole('DIRECTOR')")
+    @Operation(
+        summary = "Remover acesso administrativo",
+        description = "Rebaixa um administrador para o perfil básico e encerra suas sessões renováveis."
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Acesso administrativo removido"),
+        @ApiResponse(responseCode = "403", description = "Ação permitida somente à conta da diretoria"),
+        @ApiResponse(responseCode = "404", description = "Usuário não encontrado"),
+        @ApiResponse(responseCode = "409", description = "Usuário não possui acesso administrativo")
+    })
+    public ResponseEntity<UserApprovalResponseDTO> revokeAdminAccess(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UsuarioPrincipal principal) {
+        return ResponseEntity.ok(
+                userService.revokeAdminAccess(principal.getUserDto().getId(), id)
+        );
+    }
+
     @Operation(
         summary = "Excluir Usuário do Sistema", 
         description = "Deleta fisicamente um usuário do banco de dados (Hard Delete). Esta ação é irreversível e exige privilégios de Diretoria."

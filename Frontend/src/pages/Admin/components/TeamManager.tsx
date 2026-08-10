@@ -6,6 +6,7 @@ import {
   Mail,
   RefreshCw,
   ShieldCheck,
+  ShieldOff,
   UserRoundCheck,
   UsersRound,
   X,
@@ -51,8 +52,12 @@ function getErrorMessage(error: unknown) {
   return "Não foi possível carregar as solicitações.";
 }
 
+function hasAdministrativeAccess(user: UserApproval) {
+  return user.roles.includes("ADMIN") || user.roles.includes("DIRECTOR");
+}
+
 export default function TeamManager({ onNotify }: TeamManagerProps) {
-  const { apiRequest } = useAuth();
+  const { user: currentUser, apiRequest } = useAuth();
   const [status, setStatus] = useState<ApprovalStatus>("PENDING");
   const [users, setUsers] = useState<UserApproval[]>([]);
   const [loading, setLoading] = useState(true);
@@ -117,6 +122,35 @@ export default function TeamManager({ onNotify }: TeamManagerProps) {
           ? `${user.presentationName || user.email} agora tem acesso administrativo.`
           : `A solicitação de ${user.presentationName || user.email} foi reprovada.`,
       );
+    } catch (requestError) {
+      setError(getErrorMessage(requestError));
+    } finally {
+      setProcessingId(null);
+    }
+  }
+
+  async function revokeAdminAccess(user: UserApproval) {
+    const name = user.presentationName || user.email;
+    if (
+      !window.confirm(
+        `Remover o acesso administrativo de ${name}? A conta será mantida, mas não poderá mais acessar o painel.`,
+      )
+    ) {
+      return;
+    }
+
+    setProcessingId(user.id);
+    setError("");
+
+    try {
+      const updatedUser = await apiRequest<UserApproval>(
+        `/api/director/users/${user.id}/revoke-admin`,
+        { method: "PATCH" },
+      );
+      setUsers((current) =>
+        current.map((item) => (item.id === user.id ? updatedUser : item)),
+      );
+      onNotify(`O acesso administrativo de ${name} foi removido.`);
     } catch (requestError) {
       setError(getErrorMessage(requestError));
     } finally {
@@ -223,9 +257,17 @@ export default function TeamManager({ onNotify }: TeamManagerProps) {
                 </span>
               </div>
               <span
-                className={`admin-team__status is-${user.approvalStatus.toLowerCase()}`}
+                className={`admin-team__status ${
+                  user.approvalStatus === "APPROVED" &&
+                  !hasAdministrativeAccess(user)
+                    ? "is-revoked"
+                    : `is-${user.approvalStatus.toLowerCase()}`
+                }`}
               >
-                {user.approvalStatus === "PENDING"
+                {user.approvalStatus === "APPROVED" &&
+                !hasAdministrativeAccess(user)
+                  ? "Acesso removido"
+                  : user.approvalStatus === "PENDING"
                   ? "Pendente"
                   : user.approvalStatus === "APPROVED"
                     ? "Aprovado"
@@ -257,6 +299,26 @@ export default function TeamManager({ onNotify }: TeamManagerProps) {
                   </button>
                 </div>
               )}
+              {status === "APPROVED" &&
+                hasAdministrativeAccess(user) &&
+                !user.roles.includes("DIRECTOR") &&
+                user.id !== currentUser?.id && (
+                  <div className="admin-team__actions">
+                    <button
+                      type="button"
+                      className="is-reject"
+                      disabled={processingId === user.id}
+                      onClick={() => void revokeAdminAccess(user)}
+                    >
+                      {processingId === user.id ? (
+                        <LoaderCircle className="is-spinning" size={16} />
+                      ) : (
+                        <ShieldOff size={16} />
+                      )}
+                      Remover acesso
+                    </button>
+                  </div>
+                )}
             </article>
           ))
         )}

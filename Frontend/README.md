@@ -23,8 +23,10 @@ interfaces diferentes conforme os cargos e privilégios do usuário autenticado.
 | Autenticação administrativa | Login JWT, renovação de sessão, MFA e solicitação de cadastro |
 | Painel de blog | CRUD e publicação integrados à API |
 | Painel de parceiros | CRUD integrado à API |
+| Upload de imagens | Capas do blog e logos de parceiros enviadas pelo painel |
+| Painel de indicadores | CRUD integrado à API pública da home |
 | Gestão da equipe | Aprovação, reprovação, exclusão e alteração de cargo para a diretoria |
-| Cases, indicadores, contatos e informações da empresa | Sinalizados na interface como indisponíveis |
+| Cases, contatos e informações da empresa | Sinalizados na interface como indisponíveis |
 | Sobre, serviços, cases, contato e privacidade | Páginas temporárias de funcionalidade indisponível |
 
 O cadastro público cria uma solicitação com o cargo `BASIC` e estado `PENDING`.
@@ -110,6 +112,11 @@ As páginas públicas consultam:
 O painel usa os endpoints protegidos de autenticação, blog, parceiros e gestão
 de usuários. Requisições protegidas enviam
 `Authorization: Bearer <access-token>`.
+
+Nos formulários de blog e parceiros, o painel aceita JPEG, PNG e WebP de até
+5 MB. O arquivo é enviado como `multipart/form-data`; a URL devolvida pelo
+backend é inserida no mesmo campo utilizado pelos CRUDs existentes. A entrada
+manual de URL continua disponível como alternativa.
 
 O menu administrativo é filtrado pelos privilégios devolvidos por `/auth/me`.
 Entre os privilégios reconhecidos estão:

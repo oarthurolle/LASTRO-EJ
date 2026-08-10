@@ -28,11 +28,13 @@ gestão de parceiros e o fluxo de aprovação de novos usuários.
 - CRUD administrativo e consulta pública de posts
 - Estados `DRAFT`, `PUBLISHED` e `UNPUBLISHED` para posts
 - CRUD administrativo e listagem pública de parceiros ativos
+- CRUD administrativo de indicadores e consulta pública para a home
+- Upload local de capas do blog e logos de parceiros com volume persistente
 - Fila Redis para envio de e-mails
 - Erros HTTP em JSON
 - Migrations versionadas e validação do schema na inicialização
 
-Cases, indicadores e contatos fazem parte do domínio planejado, mas seus fluxos
+Cases e contatos fazem parte do domínio planejado, mas seus fluxos
 completos ainda não estão disponíveis na aplicação atual.
 
 ## Pré-requisitos
@@ -66,6 +68,8 @@ Os principais valores são:
 | `bootstrap.admin.*` | Credenciais da primeira conta `DIRECTOR` |
 | `security.mfa.secret-encryption.key` | Chave AES em Base64 para proteger segredos MFA |
 | `app.mail.*` e `spring.mail.*` | Remetente, links e transporte de e-mail |
+| `app.storage.root` | Diretório persistente dos uploads |
+| `app.storage.public-base-url` | Origem pública usada para formar as URLs das imagens |
 
 ### Conta inicial da diretoria
 
@@ -126,6 +130,11 @@ docker compose -f docker/docker-compose.deploy.yml down
 ```
 
 Não adicione `--volumes` se desejar manter os dados.
+
+O mesmo cuidado vale para as imagens enviadas pelo painel: elas ficam no volume
+`lastro_uploads`. O comando `docker compose down --volumes` remove tanto o
+volume do PostgreSQL quanto o volume de imagens. Banco e imagens devem entrar
+na estratégia de backup do ambiente.
 
 O compose aceita, entre outras, as variáveis `POSTGRES_DB`, `POSTGRES_USER`,
 `POSTGRES_PASSWORD`, `APP_CORS_ALLOWED_ORIGINS`,
@@ -233,6 +242,26 @@ HTML; todo cliente que o renderizar deve aplicar sanitização contra XSS.
 - Privilégio: `PRIV_PARTNERS_ADMIN`
 
 A API pública devolve somente parceiros ativos, ordenados por `sortOrder`.
+
+### Upload de imagens
+
+- Capa do blog: `POST /api/admin/uploads/blog`
+- Logo de parceiro: `POST /api/admin/uploads/partners`
+- Campo multipart: `file`
+- Formatos: JPEG, PNG e WebP
+- Tamanho máximo: 5 MB
+- Leitura pública: `GET /media/**`
+
+Os endpoints de upload exigem, respectivamente, `PRIV_BLOG_ADMIN` e
+`PRIV_PARTNERS_ADMIN`. O backend valida o conteúdo real da imagem, gera um nome
+UUID e devolve uma URL absoluta. Os CRUDs continuam recebendo JSON e salvando
+essa URL em `coverImageUrl` ou `logoUrl`.
+
+Em execução sem Docker, os arquivos ficam por padrão em `Backend/uploads`,
+diretório ignorado pelo Git. Em produção, configure
+`APP_STORAGE_PUBLIC_BASE_URL` com a origem pública real do backend. O filesystem
+local pressupõe uma única instância da aplicação; antes de escalar
+horizontalmente, migre para armazenamento compartilhado.
 
 ### Gestão de usuários
 
