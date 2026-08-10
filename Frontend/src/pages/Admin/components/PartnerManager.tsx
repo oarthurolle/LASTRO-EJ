@@ -15,6 +15,7 @@ import {
 import { ApiRequestError } from "../../../auth/api";
 import { useAuth } from "../../../auth/useAuth";
 import type { Partner, PartnerDraft } from "../types";
+import ImageUploadField from "../../../components/admin/ImageUploadField";
 
 interface PartnerManagerProps {
   onNotify: (message: string) => void;
@@ -51,6 +52,7 @@ export default function PartnerManager({ onNotify }: PartnerManagerProps) {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [requestError, setRequestError] = useState("");
+  const [imageUploading, setImageUploading] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -242,7 +244,7 @@ export default function PartnerManager({ onNotify }: PartnerManagerProps) {
           <button
             type="button"
             className="admin-button admin-button--primary"
-            disabled={submitting}
+            disabled={submitting || imageUploading}
             onClick={() => void savePartner()}
           >
             {submitting ? (
@@ -283,21 +285,15 @@ export default function PartnerManager({ onNotify }: PartnerManagerProps) {
               )}
             </div>
 
-            <div className="admin-field">
-              <label htmlFor="partner-logo">URL da logo</label>
-              <input
-                id="partner-logo"
-                type="url"
-                value={draft.logoUrl}
-                maxLength={255}
-                className={errors.logoUrl ? "is-invalid" : ""}
-                placeholder="https://exemplo.com/logo.png"
-                onChange={(event) => updateDraft("logoUrl", event.target.value)}
-              />
-              {errors.logoUrl && (
-                <span className="admin-field__error">{errors.logoUrl}</span>
-              )}
-            </div>
+            <ImageUploadField
+              label="Logo do parceiro"
+              value={draft.logoUrl}
+              target="partners"
+              error={errors.logoUrl}
+              recommendation="Prefira imagens com fundo transparente."
+              onChange={(url) => updateDraft("logoUrl", url)}
+              onUploadingChange={setImageUploading}
+            />
 
             <div className="admin-field">
               <label htmlFor="partner-link">Link externo</label>
@@ -398,7 +394,7 @@ export default function PartnerManager({ onNotify }: PartnerManagerProps) {
         <div>
           <span className="admin-eyebrow">Conteúdo da home</span>
           <h1>Parceiros</h1>
-          <p>Gerencie logos, links, ordem e visibilidade dos parceiros.</p>
+          <p>Gerencie parceiros e envie seus logotipos diretamente pelo painel.</p>
         </div>
         <button
           type="button"

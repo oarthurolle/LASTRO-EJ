@@ -531,7 +531,7 @@ export default function Admin() {
       return <IndicatorManager onNotify={setNotification} />;
     }
 
-    return <PlaceholderModule section={activeSection as any} />;
+    return <PlaceholderModule section={activeSection} />;
   }
 
   return (

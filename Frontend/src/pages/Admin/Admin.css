@@ -1484,6 +1484,83 @@
   color: #fff;
 }
 
+.admin-image-upload {
+  display: grid;
+  gap: 1rem;
+}
+
+.admin-image-upload__preview {
+  position: relative;
+  overflow: hidden;
+  min-height: 10rem;
+  border: 1px dashed var(--admin-border);
+  border-radius: 0.9rem;
+  background: var(--admin-surface-muted);
+}
+
+.admin-image-upload__preview > img {
+  width: 100%;
+  height: 12rem;
+  display: block;
+  object-fit: contain;
+}
+
+.admin-image-upload__preview > button {
+  position: absolute;
+  top: 0.65rem;
+  right: 0.65rem;
+  width: 2rem;
+  height: 2rem;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  color: #fff;
+  background: rgba(15, 10, 56, 0.78);
+  cursor: pointer;
+}
+
+.admin-image-upload__empty,
+.admin-image-upload__loading {
+  min-height: 10rem;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 0.55rem;
+  color: var(--admin-muted);
+  text-align: center;
+}
+
+.admin-image-upload__loading {
+  position: absolute;
+  inset: 0;
+  color: #fff;
+  background: rgba(15, 10, 56, 0.68);
+}
+
+.admin-image-upload__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem 0.85rem;
+}
+
+.admin-image-upload__actions > input[type="file"] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  clip-path: inset(50%);
+}
+
+.admin-image-upload__actions > span {
+  flex-basis: 100%;
+  color: var(--admin-muted);
+  font-size: 0.72rem;
+}
+
 .admin-preview {
   margin-bottom: 1rem;
   overflow: hidden;
@@ -2008,6 +2085,11 @@
 .admin-team__status.is-rejected {
   background: #fff0f0;
   color: #ad3c3c;
+}
+
+.admin-team__status.is-revoked {
+  background: #f1f2f5;
+  color: #626579;
 }
 
 .admin-team__actions {

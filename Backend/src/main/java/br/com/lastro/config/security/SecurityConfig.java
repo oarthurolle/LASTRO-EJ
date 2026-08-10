@@ -71,6 +71,7 @@ public class SecurityConfig {
                                 "/contact/sendMail"
                         ).permitAll()
                         .requestMatchers(HttpMethod.GET, "/auth/verify-email").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/media/**").permitAll()
                         .requestMatchers(
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",

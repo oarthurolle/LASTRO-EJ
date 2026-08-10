@@ -8,6 +8,7 @@ import br.com.lastro.exception.exceptions.ApiException;
 import br.com.lastro.exception.exceptions.ConflictException;
 import br.com.lastro.exception.exceptions.NotFoundException;
 import br.com.lastro.repository.RoleRepository;
+import br.com.lastro.repository.RefreshTokenRepository;
 import br.com.lastro.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -28,6 +29,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
 
     @Transactional
     public void deleteUser(Long actorId, Long id) {
@@ -64,6 +66,29 @@ public class UserService {
 
         user.setRoles(newRoles);
         userRepository.save(user);
+    }
+
+    @Transactional
+    public UserApprovalResponseDTO revokeAdminAccess(Long actorId, Long id) {
+        User user = getUser(id);
+        if (actorId.equals(id)) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "Você não pode remover o próprio acesso.");
+        }
+        ensureNotDirector(user);
+
+        boolean isAdmin = user.getRoles() != null && user.getRoles().stream()
+                .anyMatch(role -> "ADMIN".equals(role.getName()));
+        if (!isAdmin) {
+            throw new ConflictException("Este usuário não possui acesso de administrador.");
+        }
+
+        Role basicRole = roleRepository.findByName("BASIC")
+                .orElseThrow(() -> new IllegalStateException("Role BASIC não encontrada."));
+
+        user.setRoles(new HashSet<>(Set.of(basicRole)));
+        User savedUser = userRepository.save(user);
+        refreshTokenRepository.deleteAllByUser(savedUser);
+        return toApprovalResponse(savedUser);
     }
 
     @Transactional(readOnly = true)

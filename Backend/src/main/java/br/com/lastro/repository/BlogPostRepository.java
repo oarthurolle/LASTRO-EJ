@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
+import java.util.List;
 
 @Repository
 public interface BlogPostRepository extends JpaRepository<BlogPost, Long> {
@@ -27,4 +28,7 @@ public interface BlogPostRepository extends JpaRepository<BlogPost, Long> {
     );
 
     boolean existsBySlug(String slug);
+
+    @Query("SELECT b.coverImageUrl FROM BlogPost b WHERE b.coverImageUrl IS NOT NULL")
+    List<String> findAllReferencedCoverImageUrls();
 }

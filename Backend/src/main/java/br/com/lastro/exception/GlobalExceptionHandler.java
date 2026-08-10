@@ -18,6 +18,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 import jakarta.validation.ConstraintViolationException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.time.Instant;
 import java.util.List;
@@ -69,6 +70,15 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiErrorResponse> handleDataIntegrity(DataIntegrityViolationException ex, HttpServletRequest request) {
         // Ex.: unique violation (email já existe), FK, etc.
         return build(HttpStatus.CONFLICT, "Violação de integridade dos dados.", request.getRequestURI(), null);
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ApiErrorResponse> handleMaxUploadSize(
+            MaxUploadSizeExceededException ex,
+            HttpServletRequest request
+    ) {
+        return build(HttpStatus.PAYLOAD_TOO_LARGE,
+                "A imagem deve possuir no maximo 5 MB.", request.getRequestURI(), null);
     }
 
     @ExceptionHandler(NotFoundException.class)

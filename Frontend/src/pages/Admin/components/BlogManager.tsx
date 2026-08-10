@@ -12,7 +12,6 @@ import {
   Search,
   Send,
   Trash2,
-  X,
 } from "lucide-react";
 import { ApiRequestError } from "../../../auth/api";
 import { useAuth } from "../../../auth/useAuth";
@@ -30,6 +29,7 @@ import {
 } from "../utils";
 import RichTextEditor from "./RichTextEditor";
 import { sanitizeBlogHtml } from "../../../utils/sanitizeHtml";
+import ImageUploadField from "../../../components/admin/ImageUploadField";
 
 interface BlogManagerProps {
   posts: BlogPost[];
@@ -60,6 +60,7 @@ export default function BlogManager({
   const [categoryFilter, setCategoryFilter] = useState("ALL");
   const [submitting, setSubmitting] = useState(false);
   const [requestError, setRequestError] = useState("");
+  const [imageUploading, setImageUploading] = useState(false);
 
   const filteredPosts = useMemo(() => {
     const normalizedSearch = search.trim().toLocaleLowerCase("pt-BR");
@@ -265,7 +266,7 @@ export default function BlogManager({
             <button
               type="button"
               className="admin-button admin-button--secondary"
-              disabled={submitting}
+              disabled={submitting || imageUploading}
               onClick={() =>
                 void savePost(originalPost?.status ?? "DRAFT")
               }
@@ -276,7 +277,7 @@ export default function BlogManager({
             <button
               type="button"
               className="admin-button admin-button--primary"
-              disabled={submitting}
+              disabled={submitting || imageUploading}
               onClick={() => void savePost("PUBLISHED")}
             >
               <Send size={16} />
@@ -449,7 +450,7 @@ export default function BlogManager({
               <button
                 type="button"
                 className="admin-button admin-button--primary admin-button--full"
-                disabled={submitting}
+                disabled={submitting || imageUploading}
                 onClick={() => void savePost(draft.status)}
               >
                 {submitting ? (
@@ -471,46 +472,19 @@ export default function BlogManager({
               <div className="admin-card__heading admin-card__heading--compact">
                 <div>
                   <h2>Imagem de capa</h2>
-                  <p>Use uma URL pública HTTP ou HTTPS.</p>
+                  <p>Envie uma imagem ou use uma URL pública HTTP ou HTTPS.</p>
                 </div>
               </div>
-              {draft.coverImageUrl ? (
-                <div className="admin-cover-preview">
-                  <img src={draft.coverImageUrl} alt="" />
-                  <button
-                    type="button"
-                    onClick={() => updateDraft("coverImageUrl", "")}
-                    aria-label="Remover imagem de capa"
-                  >
-                    <X size={15} />
-                  </button>
-                </div>
-              ) : (
-                <div className="admin-dropzone">
-                  <FileImage size={25} />
-                  <strong>Informe a URL da capa</strong>
-                  <span>Recomendamos proporção 16:10</span>
-                </div>
-              )}
-              <div className="admin-field admin-field--compact">
-                <label htmlFor="blog-cover-url">URL da imagem</label>
-                <input
-                  id="blog-cover-url"
-                  type="url"
-                  value={draft.coverImageUrl}
-                  maxLength={255}
-                  placeholder="https://..."
-                  className={errors.coverImageUrl ? "is-invalid" : ""}
-                  onChange={(event) =>
-                    updateDraft("coverImageUrl", event.target.value)
-                  }
-                />
-                {errors.coverImageUrl && (
-                  <span className="admin-field__error">
-                    {errors.coverImageUrl}
-                  </span>
-                )}
-              </div>
+              <ImageUploadField
+                label="Imagem de capa"
+                value={draft.coverImageUrl}
+                target="blog"
+                optional
+                error={errors.coverImageUrl}
+                recommendation="Recomendamos proporção 16:10."
+                onChange={(url) => updateDraft("coverImageUrl", url)}
+                onUploadingChange={setImageUploading}
+              />
             </article>
 
             <article className="admin-card admin-preview">

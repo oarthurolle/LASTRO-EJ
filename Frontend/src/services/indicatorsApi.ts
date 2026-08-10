@@ -25,8 +25,8 @@ async function handleResponse<T>(res: Response): Promise<T> {
 }
 
 // Obter token (ajuste de acordo com a estratégia de Auth do projeto, ex: context, cookies ou localStorage)
-function getAuthHeaders() {
-  const token = localStorage.getItem("accessToken"); 
+function getAuthHeaders(): Record<string, string> {
+  const token = localStorage.getItem("accessToken");
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
