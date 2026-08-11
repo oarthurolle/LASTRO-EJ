@@ -25,7 +25,7 @@
 
 .cases__hero h1 {
   font-size: var(--font-size-h1);
-  color: var(--color-primary-900);
+  color: var(--color-text-light);
   max-width: 640px;
   margin: 0 auto;
 }
@@ -295,10 +295,10 @@
 /* CTA */
 .cases__cta {
   text-align: center;
-  padding: var(--space-xl) 0;
-  background: var(--gradient-bg);
+  padding: var(--space-xl);
+  background: var(--color-bg);
   border-radius: var(--radius-xl);
-  color: var(--color-text-light);
+  color: var(--color-text-dark);
   opacity: 0;
   animation: fadeSlideUp 0.8s ease-out forwards;
   animation-delay: 0.4s;
@@ -312,6 +312,7 @@
 
 .cases__cta h2 {
   font-size: var(--font-size-h2);
+  color: var(--color-primary-900);
   margin-bottom: var(--space-lg);
   max-width: 600px;
   margin-left: auto;

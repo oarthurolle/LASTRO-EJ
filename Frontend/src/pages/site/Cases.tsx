@@ -114,7 +114,7 @@ export default function Cases() {
       {primeiroComDepoimento && (
         <section className="cases__testimonial-wrap">
           <span className="cases__eyebrow" style={{ textAlign: "center" }}>Depoimento</span>
-          <h2 style={{ fontSize: "var(--font-size-h2)", marginBottom: "var(--space-lg)", textAlign: "center", color: "var(--color-primary-900)" }}>
+          <h2 style={{ fontSize: "var(--font-size-h2)", marginBottom: "var(--space-lg)", textAlign: "center", color: "var(--color-text-light)" }}>
             Conheça quem já confiou na Lastro
           </h2>
           <div className="cases__testimonial-card">
