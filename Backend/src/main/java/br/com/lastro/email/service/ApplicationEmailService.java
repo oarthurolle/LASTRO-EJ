@@ -6,6 +6,7 @@ import br.com.lastro.email.model.TransactionalEmail;
 import br.com.lastro.email.queue.EmailQueuePort;
 import br.com.lastro.email.template.EmailTemplateRenderer;
 import br.com.lastro.email.template.RenderedEmailTemplate;
+import br.com.lastro.entity.ContactMessage;
 import br.com.lastro.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,6 +24,9 @@ public class ApplicationEmailService {
 
     @Value("${spring.application.name}")
     private String appName;
+
+    @Value("${app.mail.contact-recipient:lastro.ej@uern.br}")
+    private String contactRecipient;
 
     public void sendEmailVerification(User user, String rawToken) {
         queueTemplateEmail(
@@ -46,6 +50,34 @@ public class ApplicationEmailService {
                 ),
                 "forgot:" + user.getId() + ":" + rawToken
         );
+    }
+
+    public void sendContactMessage(ContactMessage message) {
+        queueTemplateEmail(
+                contactRecipient,
+                EmailType.CONTACT,
+                Map.of(
+                        "name", escapeHtml(message.getName()),
+                        "email", escapeHtml(message.getEmail()),
+                        "phone", escapeHtml(message.getPhone() == null ? "" : message.getPhone()),
+                        "subject", escapeHtml(message.getSubject()),
+                        "message", escapeHtml(message.getMessage()),
+                        "appName", appName
+                ),
+                "contact:" + message.getId()
+        );
+    }
+
+    private String escapeHtml(String value) {
+        if (value == null || value.isBlank()) {
+            return "";
+        }
+        return value
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;")
+                .replace("'", "&#39;");
     }
 
     private void queueTemplateEmail(

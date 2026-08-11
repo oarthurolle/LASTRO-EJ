@@ -67,8 +67,7 @@ public class SecurityConfig {
                                 "/auth/resend-verification",
                                 "/auth/forgot-password",
                                 "/mfa/verify",
-                                "/refresh",
-                                "/contact/sendMail"
+                                "/refresh"
                         ).permitAll()
                         .requestMatchers(HttpMethod.GET, "/auth/verify-email").permitAll()
                         .requestMatchers(HttpMethod.GET, "/media/**").permitAll()
