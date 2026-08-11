@@ -1,20 +1,27 @@
 // src/types/case.ts
 
+export type CasePublicationStatus = "DRAFT" | "PUBLISHED";
+
 export interface Case {
   id: number;
   clientName: string;
-  serviceCategory: string;
+  serviceCategory: string | null;
   problem: string;
   solution: string;
   result: string;
-  coverImageUrl: string;
-  testimonial?: string;
-  projectDate: string;              
-  status?: "DRAFT" | "PUBLISHED";    
+  coverImageUrl: string | null;
+  testimonial?: string | null;
+  projectDate: string | null;
+  status?: CasePublicationStatus;
 }
 
-
-export type CaseInput = Omit<Case, "id">;
+export type CaseInput = Omit<Case, "id"> & {
+  clientName: string;
+  serviceCategory: string | null;
+  coverImageUrl: string | null;
+  projectDate: string | null;
+  status?: CasePublicationStatus;
+};
 
 export const SERVICE_CATEGORIES = [
   "Diagnóstico Financeiro",

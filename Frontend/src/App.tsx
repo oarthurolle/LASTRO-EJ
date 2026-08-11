@@ -1,4 +1,4 @@
-import { Routes, Route, BrowserRouter, Outlet } from "react-router-dom";
+import { Routes, Route, BrowserRouter, Outlet, Navigate } from "react-router-dom";
 
 import { Navbar } from "./components/common/NavBar/Navbar";
 import Footer from "./components/common/Footer/Footer";
@@ -13,8 +13,8 @@ import UnavailablePage from "./pages/Unavailable/UnavailablePage";
 import { ToastProvider } from "./components/admin/Toast.tsx";
 import Cases from "./pages/site/Cases.tsx";
 import CaseDetalhe from "./pages/site/CaseDetalhe.tsx";
-import AdminCasesLista from "./pages/admin/AdminCasesLista.tsx";
-import AdminCasesForm from "./pages/admin/AdminCasesForm.tsx";
+import Contato from "./pages/Contato/Contato";
+import Privacidade from "./pages/Privacidade/Privacidade";
 
 const AppLayout = () => {
   return (
@@ -51,52 +51,23 @@ export default function App() {
               <Route path="/servicos" element={<Services />} />
               <Route path="/cases" element={<Cases />} />
               <Route path="/cases/:id" element={<CaseDetalhe />} />
+              <Route path="/contato" element={<Contato />} />
+              <Route path="/privacidade" element={<Privacidade />} />
             </Route>
 
             {/* Layout with main-content wrapper */}
             <Route element={<MainContentLayout />}>
               <Route path="/blog/*" element={<Blog />} />
-              
-              {/* Unavailable Pages */}
-              <Route path="/casos" element={<UnavailablePage title="Cases de sucesso" />} />
-              <Route path="/contato" element={<UnavailablePage title="Contato" />} />
-              <Route path="/privacidade" element={<UnavailablePage title="Política de Privacidade" />} />
-              
+
+              {/* Redirect antigo para a rota atual de cases */}
+              <Route path="/casos" element={<Navigate to="/cases" replace />} />
+
               {/* Not Found */}
               <Route path="*" element={<UnavailablePage title="Não encontramos esta página" notFound />} />
             </Route>
 
-            {/* Standalone Routes (Pages handle their own Header/Footer) */}
-            {/* removed /cases and /cases/:id from here */}
-
             {/* Admin Dashboard */}
             <Route path="/admin" element={<AdminAccess />} />
-
-            {/* Admin Nested Routes (Protected) */}
-            <Route 
-              path="/admin/cases" 
-              element={
-                <AdminAccess>
-                  <AdminCasesLista />
-                </AdminAccess>
-              } 
-            />
-            <Route 
-              path="/admin/cases/novo" 
-              element={
-                <AdminAccess>
-                  <AdminCasesForm />
-                </AdminAccess>
-              } 
-            />
-            <Route 
-              path="/admin/cases/:id/editar" 
-              element={
-                <AdminAccess>
-                  <AdminCasesForm />
-                </AdminAccess>
-              } 
-            />
           </Routes>
         </ToastProvider>
       </AuthProvider>

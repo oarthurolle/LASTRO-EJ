@@ -36,7 +36,7 @@ export default function CaseDetalhe() {
     );
   }
 
-  function formatDateBR(dateString: string) {
+  function formatDateBR(dateString: string | null) {
     if (!dateString) return "";
     const date = new Date(dateString);
     return date.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
@@ -50,7 +50,9 @@ export default function CaseDetalhe() {
       </Link>
 
       <div className="case-detail__hero">
-        <img src={c.coverImageUrl} alt={c.clientName} />
+        {c.coverImageUrl && (
+          <img src={c.coverImageUrl} alt={c.clientName} />
+        )}
         <div className="case-detail__hero-content">
           <span className="case-detail__cat">{c.serviceCategory}</span>
           <h1>{c.clientName}</h1>

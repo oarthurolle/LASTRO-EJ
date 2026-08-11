@@ -25,13 +25,17 @@ export default function Cases() {
   const filtrados = useMemo(() => {
     return cases
       .filter((c) => categoria === "Todos" || c.serviceCategory === categoria)
-      .sort((a, b) => new Date(b.projectDate).getTime() - new Date(a.projectDate).getTime());
+      .sort(
+        (a, b) =>
+          (b.projectDate ? new Date(b.projectDate).getTime() : 0) -
+          (a.projectDate ? new Date(a.projectDate).getTime() : 0),
+      );
   }, [cases, categoria]);
 
   const visiveis = filtrados.slice(0, visibleCount);
   const primeiroComDepoimento = cases.find((c) => c.testimonial);
 
-  function formatDateBR(dateString: string) {
+  function formatDateBR(dateString: string | null) {
     if (!dateString) return "";
     const date = new Date(dateString);
     return date.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
@@ -65,7 +69,11 @@ export default function Cases() {
             {visiveis.map((c) => (
               <Link key={c.id} to={`/cases/${c.id}`} className="cases__card">
                 <div className="cases__media">
-                  <img src={c.coverImageUrl} alt={c.clientName} />
+                  {c.coverImageUrl ? (
+                    <img src={c.coverImageUrl} alt={c.clientName} />
+                  ) : (
+                    <div className="cases__media-placeholder">{c.clientName}</div>
+                  )}
                   <div className="cases__media-content">
                     <span className="cases__cat">{c.serviceCategory}</span>
                     <h3>{c.clientName}</h3>

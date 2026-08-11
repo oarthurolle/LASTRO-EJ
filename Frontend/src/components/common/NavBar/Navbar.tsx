@@ -44,7 +44,7 @@ export function Navbar() {
           </li>
 
           <li>
-            <NavLink to="/sobre-nos" onClick={() => setMenuOpen(false)}>
+            <NavLink to="/sobre" onClick={() => setMenuOpen(false)}>
               Sobre nós
             </NavLink>
           </li>
@@ -75,13 +75,13 @@ export function Navbar() {
         </ul>
 
         <div className={`navbar-cta ${menuOpen ? "active" : ""}`}>
-          <a
-            href="/#cta"
+          <NavLink
+            to="/contato"
             className="btn-cta"
             onClick={() => setMenuOpen(false)}
           >
             Fale conosco
-          </a>
+          </NavLink>
         </div>
 
       </div>
