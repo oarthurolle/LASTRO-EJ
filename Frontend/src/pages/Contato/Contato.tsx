@@ -9,6 +9,7 @@ import {
   Phone,
 } from "lucide-react";
 import { fetchApi, parseApiResponse } from "../../auth/api";
+import logo from "../../assets/logos/logoWhite.png";
 import "./Contato.css";
 
 interface ContactPayload {
@@ -107,7 +108,8 @@ export default function Contato() {
 
   if (sent) {
     return (
-      <div className="contato-page container">
+      <section className="contato-page">
+      <div className="container">
         <section className="contato__success">
           <CheckCircle2 size={44} />
           <span className="contato__eyebrow">Mensagem enviada</span>
@@ -119,20 +121,23 @@ export default function Contato() {
           <Link to="/" className="contato__btn-primary">
             Voltar ao início
           </Link>
-        </section>
-      </div>
+          </section>
+        </div>
+      </section>
     );
   }
 
   return (
-    <div className="contato-page container">
+    <section className="contato-page">
+      <div className="container">
       <section className="contato__hero">
+        <img
+          src={logo}
+          alt="Logo Lastro"
+          className="contato__logo"
+        />
         <span className="contato__eyebrow">Contato</span>
-        <h1>Fale com a LASTRO</h1>
-        <p>
-          Conte sobre o seu negócio. Nossa equipe avalia seu cenário e indica o
-          melhor caminho, sem compromisso.
-        </p>
+        <h1>Contate-nos. Fale com a LASTRO</h1>
       </section>
 
       <div className="contato__layout">
@@ -277,5 +282,6 @@ export default function Contato() {
         </aside>
       </div>
     </div>
+    </section>
   );
 }

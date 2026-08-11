@@ -1,13 +1,15 @@
 /* src/pages/Contato/Contato.css */
 .contato-page {
+  background: var(--gradient-bg);
+  min-height: 100vh;
   padding-top: var(--space-xl, 64px);
   padding-bottom: var(--space-xl, 64px);
 }
 
 .contato__hero {
   text-align: center;
-  max-width: 640px;
-  margin: 0 auto var(--space-lg, 40px);
+  max-width: 720px;
+  margin: 0 auto var(--space-xl, 40px);
 }
 
 .contato__eyebrow {
@@ -16,20 +18,21 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--color-primary-600);
+  color: var(--color-primary-400);
   margin-bottom: 12px;
+}
+
+.contato__logo {
+  width: clamp(6rem, 10vw, 9rem);
+  margin: 0 auto var(--space-lg, 40px);
 }
 
 .contato__hero h1 {
   font-size: var(--font-size-h1);
-  color: var(--color-primary-900);
+  color: var(--color-text-light);
   margin-bottom: 12px;
 }
 
-.contato__hero p {
-  color: var(--color-text-secondary);
-  line-height: 1.7;
-}
 
 .contato__layout {
   display: grid;
