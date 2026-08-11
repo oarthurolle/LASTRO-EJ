@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { fetchApi, parseApiResponse } from "../../auth/api";
 import logo from "../../assets/logos/logoWhite.png";
+import mascot from "../../assets/images/Home/mascot.png";
 import "./Contato.css";
 
 interface ContactPayload {
@@ -244,42 +245,36 @@ export default function Contato() {
           </button>
         </form>
 
-        <aside className="contato__side">
-          <div className="contato__card">
-            <h3>Atendimento</h3>
-            <p>
-              Preferimos conversar para entender o seu momento e propor o
-              serviço certo para o seu negócio.
-            </p>
-          </div>
+        <div className="contato__left">
+          <img src={mascot} alt="Mascote da Lastro" className="contato__mascot" />
+
           <div className="contato__info">
-            <div>
-              <Mail size={18} />
-              <span>
-                <strong>E-mail</strong>
-                lastro.ej@uern.br
-              </span>
+            <div className="contato__card">
+              <h3>
+                <MapPin size={18} /> Localização
+              </h3>
+              <p>Universidade do Estado do Rio Grande do Norte</p>
+              <p>Rua Professor Antônio Campos</p>
+              <p>Bairro Costa e Silva</p>
+              <p>Mossoró - RN</p>
+              <p>CEP: 59600-000</p>
             </div>
-            <div>
-              <Phone size={18} />
-              <span>
-                <strong>Telefone</strong>
-                (84) 99460-7110
-              </span>
+
+            <div className="contato__card">
+              <h3>
+                <Mail size={18} /> E-mail
+              </h3>
+              <p>lastro.ej@uern.br</p>
             </div>
-            <div>
-              <MapPin size={18} />
-              <span>
-                <strong>Onde estamos</strong>
-                Mossoró, RN
-              </span>
+
+            <div className="contato__card">
+              <h3>
+                <Phone size={18} /> Telefone
+              </h3>
+              <p>(84) 99460-7110</p>
             </div>
           </div>
-          <p className="contato__note">
-            Resposta em até 2 dias úteis. Se preferir, fale conosco pelo
-            WhatsApp em (84) 99460-7110.
-          </p>
-        </aside>
+        </div>
       </div>
     </div>
     </section>
