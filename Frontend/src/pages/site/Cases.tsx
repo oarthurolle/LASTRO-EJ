@@ -42,8 +42,9 @@ export default function Cases() {
   }
 
   return (
-    <div className="cases-page container">
-      <section className="cases__hero">
+    <section className="cases">
+      <div className="cases-page container">
+        <section className="cases__hero">
         <span className="cases__eyebrow">Casos</span>
         <h1>Conheça nossos projetos</h1>
       </section>
@@ -139,6 +140,7 @@ export default function Cases() {
           Falar com um consultor
         </a>
       </section>
-    </div>
+      </div>
+    </section>
   );
 }
