@@ -7,7 +7,9 @@ import br.com.lastro.email.queue.EmailQueuePort;
 import br.com.lastro.email.template.EmailTemplateRenderer;
 import br.com.lastro.email.template.RenderedEmailTemplate;
 import br.com.lastro.entity.ContactMessage;
+import br.com.lastro.entity.SmtpConfig;
 import br.com.lastro.entity.User;
+import br.com.lastro.service.SmtpConfigService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -21,12 +23,10 @@ public class ApplicationEmailService {
     private final EmailTemplateRenderer templateRenderer;
     private final EmailQueuePort emailQueuePort;
     private final MailProperties mailProperties;
+    private final SmtpConfigService smtpConfigService;
 
     @Value("${spring.application.name}")
     private String appName;
-
-    @Value("${app.mail.contact-recipient:lastro.ej@uern.br}")
-    private String contactRecipient;
 
     public void sendEmailVerification(User user, String rawToken) {
         queueTemplateEmail(
@@ -53,8 +53,13 @@ public class ApplicationEmailService {
     }
 
     public void sendContactMessage(ContactMessage message) {
+        SmtpConfig activeConfig = smtpConfigService.getActiveConfig();
+        if (activeConfig == null || activeConfig.getContactRecipient() == null
+                || activeConfig.getContactRecipient().isBlank()) {
+            return;
+        }
         queueTemplateEmail(
-                contactRecipient,
+                activeConfig.getContactRecipient(),
                 EmailType.CONTACT,
                 Map.of(
                         "name", escapeHtml(message.getName()),
