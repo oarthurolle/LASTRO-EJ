@@ -8,7 +8,8 @@ export type AdminSection =
   | "indicators"
   | "contacts"
   | "company"
-  | "team";
+  | "team"
+  | "email";
 
 export interface BlogPost {
   id: number;

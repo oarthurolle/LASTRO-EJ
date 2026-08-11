@@ -16,6 +16,7 @@ import {
   Inbox,
   LayoutDashboard,
   LogOut,
+  Settings2,
   Menu,
   Newspaper,
   Plus,
@@ -31,6 +32,7 @@ import TeamManager from "./components/TeamManager";
 import IndicatorManager from "./components/IndicatorManager";
 import CaseManager from "./components/CaseManager";
 import ContactsManager from "./components/ContactsManager";
+import EmailConfigManager from "./components/EmailConfigManager";
 import type { AdminSection, BlogPost } from "./types";
 import { formatDate, initials } from "./utils";
 import "./Admin.css";
@@ -89,6 +91,13 @@ const SYSTEM_NAVIGATION: NavigationItem[] = [
     privilege: "PRIV_CONTACTS_VIEW",
   },
   {
+    id: "email",
+    label: "Configurações de e-mail",
+    icon: Settings2,
+    available: true,
+    privilege: "PRIV_COMPANY_INFO_ADMIN",
+  },
+  {
     id: "company",
     label: "Institucional",
     icon: Building2,
@@ -112,10 +121,11 @@ const SECTION_LABELS: Record<AdminSection, string> = {
   contacts: "Contatos",
   company: "Informações institucionais",
   team: "Equipe e acessos",
+  email: "Configurações de e-mail",
 };
 
 const PLACEHOLDER_COPY: Record<
-  Exclude<AdminSection, "dashboard" | "blog" | "partners" | "team" | "cases" | "indicators" | "contacts">,
+  Exclude<AdminSection, "dashboard" | "blog" | "partners" | "team" | "cases" | "indicators" | "contacts" | "email">,
   { eyebrow: string; title: string; description: string; icon: LucideIcon }
 > = {
   company: {
@@ -358,7 +368,7 @@ function Dashboard({
 }
 
 interface PlaceholderModuleProps {
-  section: Exclude<AdminSection, "dashboard" | "blog" | "partners" | "team" | "cases" | "indicators" | "contacts">;
+  section: Exclude<AdminSection, "dashboard" | "blog" | "partners" | "team" | "cases" | "indicators" | "contacts" | "email">;
 }
 
 function PlaceholderModule({ section }: PlaceholderModuleProps) {
@@ -515,6 +525,9 @@ export default function Admin() {
     }
     if (activeSection === "indicators") {
       return <IndicatorManager onNotify={setNotification} />;
+    }
+    if (activeSection === "email") {
+      return <EmailConfigManager onNotify={setNotification} />;
     }
 
     return <PlaceholderModule section={activeSection} />;
