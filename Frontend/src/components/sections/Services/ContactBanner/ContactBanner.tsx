@@ -22,7 +22,7 @@ const ContactBanner = () => {
           <div className="contact-banner__buttons">
 
             <a
-              href=""
+              href="https://wa.me/5584996007110?text=Ol%C3%A1!%20Conheci%20os%20servi%C3%A7os%20da%20Lastro%20pelo%20site%20e%20gostaria%20de%20falar%20com%20um%20consultor."
               target="_blank"
               rel="noopener noreferrer"
               className="contact-banner__button contact-banner__button--primary"
@@ -31,7 +31,7 @@ const ContactBanner = () => {
             </a>
 
             <Link
-              to="/sobre-nos"
+              to="/sobre"
               className="contact-banner__button contact-banner__button--secondary"
             >
               Conhecer a Lastro

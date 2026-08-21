@@ -2,7 +2,8 @@ package br.com.lastro.storage.model;
 
 public enum ImagePurpose {
     BLOG("blog"),
-    PARTNER("partners");
+    PARTNER("partners"),
+    CASE("cases");
 
     private final String directory;
 

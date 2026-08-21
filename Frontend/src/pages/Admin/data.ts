@@ -12,13 +12,13 @@ export const EMPTY_BLOG_POST: BlogPostDraft = {
 
 export const EMPTY_CASE_STUDY: CaseStudyDraft = {
   clientName: "",
-  serviceCategory: "",
+  serviceCategory: null,
   problem: "",
   solution: "",
   result: "",
-  coverImageUrl: "",
-  testimonial: "",
-  projectDate: "",
+  coverImageUrl: null,
+  testimonial: null,
+  projectDate: null,
   status: "DRAFT",
 };
 
@@ -28,12 +28,4 @@ export const BLOG_CATEGORIES = [
   "Mercado",
   "Empreendedorismo",
   "LASTRO",
-];
-
-export const CASE_CATEGORIES = [
-  "Diagnóstico Financeiro",
-  "Planejamento Financeiro",
-  "Precificação",
-  "Fluxo de Caixa",
-  "Análise de Viabilidade",
 ];

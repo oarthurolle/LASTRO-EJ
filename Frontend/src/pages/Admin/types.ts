@@ -8,7 +8,8 @@ export type AdminSection =
   | "indicators"
   | "contacts"
   | "company"
-  | "team";
+  | "team"
+  | "email";
 
 export interface BlogPost {
   id: number;
@@ -40,15 +41,14 @@ export type PartnerDraft = Omit<Partner, "id">;
 export interface CaseStudy {
   id: number;
   clientName: string;
-  serviceCategory: string;
+  serviceCategory: string | null;
   problem: string;
   solution: string;
   result: string;
-  coverImageUrl: string;
-  testimonial: string;
-  projectDate: string;
-  status: PublicationStatus;
-  updatedAt: string;
+  coverImageUrl: string | null;
+  testimonial: string | null;
+  projectDate: string | null;
+  status: "DRAFT" | "PUBLISHED";
 }
 
 export type BlogPostDraft = Omit<
@@ -66,4 +66,4 @@ export type BlogPostDraft = Omit<
   category: string;
 };
 
-export type CaseStudyDraft = Omit<CaseStudy, "id" | "updatedAt">;
+export type CaseStudyDraft = Omit<CaseStudy, "id">;

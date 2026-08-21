@@ -15,14 +15,15 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
-      SPRING_MAIL_HOST: ${SPRING_MAIL_HOST:-localhost}
-      SPRING_MAIL_PORT: ${SPRING_MAIL_PORT:-587}
+      SPRING_MAIL_HOST: ${SPRING_MAIL_HOST:-mailpit}
+      SPRING_MAIL_PORT: ${SPRING_MAIL_PORT:-1025}
       SPRING_MAIL_USERNAME: ${SPRING_MAIL_USERNAME}
       SPRING_MAIL_PASSWORD: ${SPRING_MAIL_PASSWORD}
-      SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: ${SPRING_MAIL_SMTP_AUTH:-true}
-      SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: ${SPRING_MAIL_SMTP_STARTTLS_ENABLE:-true}
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: ${SPRING_MAIL_SMTP_AUTH:-false}
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: ${SPRING_MAIL_SMTP_STARTTLS_ENABLE:-false}
       APP_MAIL_FROM_NAME: ${APP_MAIL_FROM_NAME:-LASTRO}
       APP_MAIL_FROM_ADDRESS: ${APP_MAIL_FROM_ADDRESS:-no-reply@example.com}
+      APP_MAIL_CONTACT_RECIPIENT: ${APP_MAIL_CONTACT_RECIPIENT:-kaykymarcelo2411@gmail.com}
       APP_MAIL_BASE_URL: ${APP_MAIL_BASE_URL:-http://localhost:8080}
       APP_CORS_ALLOWED_ORIGINS: ${APP_CORS_ALLOWED_ORIGINS:-http://localhost:5173}
       SECURITY_MFA_SECRET_ENCRYPTION_KEY: ${SECURITY_MFA_SECRET_ENCRYPTION_KEY:-}
@@ -35,6 +36,16 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      mailpit:
+        condition: service_started
+
+  mailpit:
+    image: axllent/mailpit
+    container_name: lastro-mailpit
+    restart: unless-stopped
+    ports:
+      - "1025:1025"
+      - "8025:8025"
 
   postgres:
     image: postgres:17-alpine

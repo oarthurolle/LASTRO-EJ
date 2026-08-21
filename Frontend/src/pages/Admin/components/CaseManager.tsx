@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ArrowLeft,
   BriefcaseBusiness,
@@ -6,6 +6,7 @@ import {
   Eye,
   FileImage,
   ImagePlus,
+  LoaderCircle,
   Pencil,
   Plus,
   Save,
@@ -14,49 +15,110 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import { CASE_CATEGORIES, EMPTY_CASE_STUDY } from "../data";
-import type {
-  CaseStudy,
-  CaseStudyDraft,
-  PublicationStatus,
-} from "../types";
+import { EMPTY_CASE_STUDY } from "../data";
+import type { CaseStudy, CaseStudyDraft, PublicationStatus } from "../types";
 import { formatDate } from "../utils";
+import { SERVICE_CATEGORIES } from "../../../types/case";
+import { useAuth } from "../../../auth/useAuth";
+import { uploadImage } from "../../../services/imageUploadApi";
+import { ApiRequestError } from "../../../auth/api";
 
 interface CaseManagerProps {
-  cases: CaseStudy[];
-  setCases: React.Dispatch<React.SetStateAction<CaseStudy[]>>;
   onNotify: (message: string) => void;
 }
 
 type CaseErrors = Partial<Record<keyof CaseStudyDraft, string>>;
 
-export default function CaseManager({
-  cases,
-  setCases,
-  onNotify,
-}: CaseManagerProps) {
+type CaseStatus = "DRAFT" | "PUBLISHED";
+
+interface PageResponse<T> {
+  content: T[];
+  totalPages: number;
+}
+
+function getErrorMessage(error: unknown) {
+  if (error instanceof ApiRequestError || error instanceof Error) {
+    return error.message;
+  }
+  return "Não foi possível concluir a operação.";
+}
+
+export default function CaseManager({ onNotify }: CaseManagerProps) {
+  const { apiRequest } = useAuth();
+  const [cases, setCases] = useState<CaseStudy[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [requestError, setRequestError] = useState("");
   const [view, setView] = useState<"list" | "form">("list");
   const [editingId, setEditingId] = useState<number | null>(null);
   const [draft, setDraft] = useState<CaseStudyDraft>({
     ...EMPTY_CASE_STUDY,
   });
   const [errors, setErrors] = useState<CaseErrors>({});
+  const [submitting, setSubmitting] = useState(false);
+  const [coverUploading, setCoverUploading] = useState(false);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"ALL" | PublicationStatus>(
     "ALL",
   );
   const [categoryFilter, setCategoryFilter] = useState("ALL");
 
+  useEffect(() => {
+    let active = true;
+
+    void (async () => {
+      const firstPage = await apiRequest<PageResponse<CaseStudy>>(
+        "/api/admin/cases?page=0&size=50&sort=id,desc",
+      );
+      if (firstPage.totalPages <= 1) return firstPage.content;
+
+      const remainingPages = await Promise.all(
+        Array.from({ length: firstPage.totalPages - 1 }, (_, index) =>
+          apiRequest<PageResponse<CaseStudy>>(
+            `/api/admin/cases?page=${index + 1}&size=50&sort=id,desc`,
+          ),
+        ),
+      );
+      return [
+        ...firstPage.content,
+        ...remainingPages.flatMap((page) => page.content),
+      ];
+    })()
+      .then((loadedCases) => {
+        if (active) {
+          setCases(loadedCases);
+          setRequestError("");
+        }
+      })
+      .catch((error: unknown) => {
+        if (active) setRequestError(getErrorMessage(error));
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [apiRequest]);
+
   const filteredCases = useMemo(() => {
     const normalizedSearch = search.trim().toLocaleLowerCase("pt-BR");
 
-    return cases.filter((caseStudy) => {
+    const sorted = [...cases].sort((first, second) => {
+      const firstDate = first.projectDate
+        ? new Date(first.projectDate).getTime()
+        : 0;
+      const secondDate = second.projectDate
+        ? new Date(second.projectDate).getTime()
+        : 0;
+      return secondDate - firstDate || second.id - first.id;
+    });
+
+    return sorted.filter((caseStudy) => {
       const matchesSearch =
         !normalizedSearch ||
-        caseStudy.clientName
-          .toLocaleLowerCase("pt-BR")
-          .includes(normalizedSearch) ||
-        caseStudy.serviceCategory
+        caseStudy.clientName.toLocaleLowerCase("pt-BR").includes(normalizedSearch) ||
+        (caseStudy.serviceCategory ?? "")
           .toLocaleLowerCase("pt-BR")
           .includes(normalizedSearch);
       const matchesStatus =
@@ -95,6 +157,7 @@ export default function CaseManager({
         : { ...EMPTY_CASE_STUDY },
     );
     setErrors({});
+    setRequestError("");
     setView("form");
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -102,6 +165,7 @@ export default function CaseManager({
   function closeEditor() {
     setEditingId(null);
     setErrors({});
+    setRequestError("");
     setView("list");
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -129,56 +193,96 @@ export default function CaseManager({
     return Object.keys(nextErrors).length === 0;
   }
 
-  function saveCase(status: PublicationStatus) {
+  async function saveCase(status: CaseStatus) {
     if (!validate()) {
       onNotify("Revise os campos obrigatórios antes de salvar.");
       return;
     }
 
-    const existing = cases.find((caseStudy) => caseStudy.id === editingId);
-    const nextCase: CaseStudy = {
-      id:
-        existing?.id ??
-        Math.max(0, ...cases.map((caseStudy) => caseStudy.id)) + 1,
-      ...draft,
+    setSubmitting(true);
+    setRequestError("");
+
+    const payload: CaseStudyDraft = {
+      clientName: draft.clientName.trim(),
+      serviceCategory: draft.serviceCategory,
+      problem: draft.problem.trim(),
+      solution: draft.solution.trim(),
+      result: draft.result.trim(),
+      coverImageUrl: draft.coverImageUrl,
+      testimonial: draft.testimonial,
+      projectDate: draft.projectDate,
       status,
-      updatedAt: new Date().toISOString(),
     };
 
-    setCases((current) =>
-      existing
-        ? current.map((caseStudy) =>
-            caseStudy.id === existing.id ? nextCase : caseStudy,
-          )
-        : [nextCase, ...current],
-    );
-    onNotify(
-      status === "PUBLISHED"
-        ? "Case publicado com sucesso."
-        : "Rascunho do case salvo.",
-    );
-    closeEditor();
+    try {
+      if (editingId) {
+        const saved = await apiRequest<CaseStudy>(
+          `/api/admin/cases/${editingId}`,
+          {
+            method: "PUT",
+            body: JSON.stringify(payload),
+          },
+        );
+        setCases((current) =>
+          current.map((caseStudy) =>
+            caseStudy.id === editingId ? saved : caseStudy,
+          ),
+        );
+        onNotify(
+          status === "PUBLISHED"
+            ? "Case publicado com sucesso."
+            : "Rascunho do case salvo.",
+        );
+      } else {
+        const saved = await apiRequest<CaseStudy>("/api/admin/cases", {
+          method: "POST",
+          body: JSON.stringify(payload),
+        });
+        setCases((current) => [saved, ...current]);
+        onNotify(
+          status === "PUBLISHED"
+            ? "Case publicado com sucesso."
+            : "Rascunho do case salvo.",
+        );
+      }
+      closeEditor();
+    } catch (error) {
+      setRequestError(getErrorMessage(error));
+    } finally {
+      setSubmitting(false);
+    }
   }
 
-  function deleteCase(caseStudy: CaseStudy) {
+  async function deleteCase(caseStudy: CaseStudy) {
     if (!window.confirm(`Excluir o case de “${caseStudy.clientName}”?`)) return;
 
-    setCases((current) =>
-      current.filter((item) => item.id !== caseStudy.id),
-    );
-    onNotify("Case excluído.");
+    setRequestError("");
+    try {
+      await apiRequest<void>(`/api/admin/cases/${caseStudy.id}`, {
+        method: "DELETE",
+      });
+      setCases((current) =>
+        current.filter((item) => item.id !== caseStudy.id),
+      );
+      onNotify("Case excluído.");
+    } catch (error) {
+      setRequestError(getErrorMessage(error));
+    }
   }
 
-  function handleCoverUpload(file?: File) {
+  async function handleCoverUpload(file?: File) {
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.addEventListener("load", () => {
-      if (typeof reader.result === "string") {
-        updateDraft("coverImageUrl", reader.result);
-      }
-    });
-    reader.readAsDataURL(file);
+    setCoverUploading(true);
+    setRequestError("");
+    try {
+      const uploaded = await uploadImage(apiRequest, "cases", file);
+      updateDraft("coverImageUrl", uploaded.url);
+    } catch (error) {
+      setRequestError(getErrorMessage(error));
+    } finally {
+      setCoverUploading(false);
+    }
   }
 
   if (view === "form") {
@@ -203,7 +307,8 @@ export default function CaseManager({
             <button
               type="button"
               className="admin-button admin-button--secondary"
-              onClick={() => saveCase("DRAFT")}
+              disabled={submitting}
+              onClick={() => void saveCase("DRAFT")}
             >
               <Save size={16} />
               Salvar rascunho
@@ -211,13 +316,16 @@ export default function CaseManager({
             <button
               type="button"
               className="admin-button admin-button--primary"
-              onClick={() => saveCase("PUBLISHED")}
+              disabled={submitting}
+              onClick={() => void saveCase("PUBLISHED")}
             >
               <Send size={16} />
               Publicar case
             </button>
           </div>
         </header>
+
+        {requestError && <div className="admin-request-error">{requestError}</div>}
 
         <div className="admin-editor-grid">
           <div className="admin-editor-grid__main">
@@ -251,15 +359,22 @@ export default function CaseManager({
                   <label htmlFor="case-category">Categoria do serviço</label>
                   <select
                     id="case-category"
-                    value={draft.serviceCategory}
+                    value={draft.serviceCategory ?? ""}
                     className={errors.serviceCategory ? "is-invalid" : ""}
                     onChange={(event) =>
-                      updateDraft("serviceCategory", event.target.value)
+                      updateDraft(
+                        "serviceCategory",
+                        event.target.value === ""
+                          ? null
+                          : event.target.value,
+                      )
                     }
                   >
                     <option value="">Selecione uma categoria</option>
-                    {CASE_CATEGORIES.map((category) => (
-                      <option key={category}>{category}</option>
+                    {SERVICE_CATEGORIES.map((category) => (
+                      <option key={category} value={category}>
+                        {category}
+                      </option>
                     ))}
                   </select>
                   {errors.serviceCategory && (
@@ -274,9 +389,9 @@ export default function CaseManager({
                 <input
                   id="case-date"
                   type="date"
-                  value={draft.projectDate}
+                  value={draft.projectDate ?? ""}
                   onChange={(event) =>
-                    updateDraft("projectDate", event.target.value)
+                    updateDraft("projectDate", event.target.value || null)
                   }
                 />
               </div>
@@ -366,10 +481,10 @@ export default function CaseManager({
                 <label htmlFor="case-testimonial">Texto do depoimento</label>
                 <textarea
                   id="case-testimonial"
-                  value={draft.testimonial}
+                  value={draft.testimonial ?? ""}
                   placeholder="Compartilhe uma fala aprovada pelo cliente."
                   onChange={(event) =>
-                    updateDraft("testimonial", event.target.value)
+                    updateDraft("testimonial", event.target.value || null)
                   }
                 />
               </div>
@@ -409,9 +524,12 @@ export default function CaseManager({
               <button
                 type="button"
                 className="admin-button admin-button--primary admin-button--full"
-                onClick={() => saveCase(draft.status)}
+                disabled={submitting}
+                onClick={() => void saveCase(draft.status)}
               >
-                {draft.status === "PUBLISHED" ? (
+                {submitting ? (
+                  <LoaderCircle className="is-spinning" size={16} />
+                ) : draft.status === "PUBLISHED" ? (
                   <Send size={16} />
                 ) : (
                   <Save size={16} />
@@ -434,7 +552,7 @@ export default function CaseManager({
                   <img src={draft.coverImageUrl} alt="" />
                   <button
                     type="button"
-                    onClick={() => updateDraft("coverImageUrl", "")}
+                    onClick={() => updateDraft("coverImageUrl", null)}
                     aria-label="Remover imagem de capa"
                   >
                     <X size={15} />
@@ -442,8 +560,12 @@ export default function CaseManager({
                 </div>
               ) : (
                 <label className="admin-dropzone" htmlFor="case-cover-file">
-                  <ImagePlus size={25} />
-                  <strong>Adicionar imagem</strong>
+                  {coverUploading ? (
+                    <LoaderCircle className="is-spinning" size={25} />
+                  ) : (
+                    <ImagePlus size={25} />
+                  )}
+                  <strong>{coverUploading ? "Enviando..." : "Adicionar imagem"}</strong>
                   <span>PNG ou JPG, proporção 16:10</span>
                 </label>
               )}
@@ -452,21 +574,18 @@ export default function CaseManager({
                 className="visually-hidden"
                 type="file"
                 accept="image/png,image/jpeg,image/webp"
-                onChange={(event) => handleCoverUpload(event.target.files?.[0])}
+                disabled={coverUploading}
+                onChange={(event) => void handleCoverUpload(event.target.files?.[0])}
               />
               <div className="admin-field admin-field--compact">
                 <label htmlFor="case-cover-url">Ou cole a URL</label>
                 <input
                   id="case-cover-url"
                   type="url"
-                  value={
-                    draft.coverImageUrl.startsWith("data:")
-                      ? ""
-                      : draft.coverImageUrl
-                  }
+                  value={draft.coverImageUrl ?? ""}
                   placeholder="https://..."
                   onChange={(event) =>
-                    updateDraft("coverImageUrl", event.target.value)
+                    updateDraft("coverImageUrl", event.target.value || null)
                   }
                 />
               </div>
@@ -551,88 +670,95 @@ export default function CaseManager({
           onChange={(event) => setCategoryFilter(event.target.value)}
         >
           <option value="ALL">Todos os serviços</option>
-          {CASE_CATEGORIES.map((category) => (
-            <option key={category}>{category}</option>
+          {SERVICE_CATEGORIES.map((category) => (
+            <option key={category} value={category}>
+              {category}
+            </option>
           ))}
         </select>
       </div>
 
+      {requestError && <div className="admin-request-error">{requestError}</div>}
+
       <div className="admin-table-card">
-        <table>
-          <thead>
-            <tr>
-              <th>Cliente</th>
-              <th>Serviço</th>
-              <th>Data do projeto</th>
-              <th>Atualização</th>
-              <th>Status</th>
-              <th aria-label="Ações" />
-            </tr>
-          </thead>
-          <tbody>
-            {filteredCases.map((caseStudy) => (
-              <tr key={caseStudy.id}>
-                <td data-label="Cliente">
-                  <div className="admin-content-cell">
-                    <div className="admin-content-cell__image">
-                      {caseStudy.coverImageUrl ? (
-                        <img src={caseStudy.coverImageUrl} alt="" />
-                      ) : (
-                        <BriefcaseBusiness size={20} />
-                      )}
-                    </div>
-                    <div>
-                      <strong>{caseStudy.clientName}</strong>
-                      <span>{caseStudy.result}</span>
-                    </div>
-                  </div>
-                </td>
-                <td data-label="Serviço">
-                  <span className="admin-category-badge">
-                    {caseStudy.serviceCategory}
-                  </span>
-                </td>
-                <td data-label="Data do projeto">
-                  {caseStudy.projectDate
-                    ? formatDate(caseStudy.projectDate)
-                    : "Não informada"}
-                </td>
-                <td data-label="Atualização">
-                  {formatDate(caseStudy.updatedAt)}
-                </td>
-                <td data-label="Status">
-                  <span
-                    className={`admin-status admin-status--${caseStudy.status.toLowerCase()}`}
-                  >
-                    {caseStudy.status === "PUBLISHED"
-                      ? "Publicado"
-                      : "Rascunho"}
-                  </span>
-                </td>
-                <td>
-                  <div className="admin-row-actions">
-                    <button
-                      type="button"
-                      onClick={() => openEditor(caseStudy)}
-                      aria-label={`Editar case de ${caseStudy.clientName}`}
-                    >
-                      <Pencil size={15} />
-                    </button>
-                    <button
-                      type="button"
-                      className="is-danger"
-                      onClick={() => deleteCase(caseStudy)}
-                      aria-label={`Excluir case de ${caseStudy.clientName}`}
-                    >
-                      <Trash2 size={15} />
-                    </button>
-                  </div>
-                </td>
+        {loading ? (
+          <div className="admin-empty-state">
+            <LoaderCircle className="is-spinning" size={25} />
+            <h2>Carregando cases</h2>
+          </div>
+        ) : (
+          <table>
+            <thead>
+              <tr>
+                <th>Cliente</th>
+                <th>Serviço</th>
+                <th>Data do projeto</th>
+                <th>Status</th>
+                <th aria-label="Ações" />
               </tr>
-            ))}
-          </tbody>
-        </table>
-        {filteredCases.length === 0 && (
+            </thead>
+            <tbody>
+              {filteredCases.map((caseStudy) => (
+                <tr key={caseStudy.id}>
+                  <td data-label="Cliente">
+                    <div className="admin-content-cell">
+                      <div className="admin-content-cell__image">
+                        {caseStudy.coverImageUrl ? (
+                          <img src={caseStudy.coverImageUrl} alt="" />
+                        ) : (
+                          <BriefcaseBusiness size={20} />
+                        )}
+                      </div>
+                      <div>
+                        <strong>{caseStudy.clientName}</strong>
+                        <span>{caseStudy.result}</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td data-label="Serviço">
+                    <span className="admin-category-badge">
+                      {caseStudy.serviceCategory ?? "—"}
+                    </span>
+                  </td>
+                  <td data-label="Data do projeto">
+                    {caseStudy.projectDate
+                      ? formatDate(caseStudy.projectDate)
+                      : "Não informada"}
+                  </td>
+                  <td data-label="Status">
+                    <span
+                      className={`admin-status admin-status--${caseStudy.status.toLowerCase()}`}
+                    >
+                      {caseStudy.status === "PUBLISHED"
+                        ? "Publicado"
+                        : "Rascunho"}
+                    </span>
+                  </td>
+                  <td>
+                    <div className="admin-row-actions">
+                      <button
+                        type="button"
+                        onClick={() => openEditor(caseStudy)}
+                        aria-label={`Editar case de ${caseStudy.clientName}`}
+                      >
+                        <Pencil size={15} />
+                      </button>
+                      <button
+                        type="button"
+                        className="is-danger"
+                        onClick={() => void deleteCase(caseStudy)}
+                        aria-label={`Excluir case de ${caseStudy.clientName}`}
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+        {!loading && filteredCases.length === 0 && (
           <div className="admin-empty-state">
             <Search size={24} />
             <h2>Nenhum case encontrado</h2>

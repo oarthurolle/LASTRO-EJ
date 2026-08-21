@@ -16,6 +16,7 @@ import {
   Inbox,
   LayoutDashboard,
   LogOut,
+  Settings2,
   Menu,
   Newspaper,
   Plus,
@@ -29,6 +30,9 @@ import BlogManager from "./components/BlogManager";
 import PartnerManager from "./components/PartnerManager";
 import TeamManager from "./components/TeamManager";
 import IndicatorManager from "./components/IndicatorManager";
+import CaseManager from "./components/CaseManager";
+import ContactsManager from "./components/ContactsManager";
+import EmailConfigManager from "./components/EmailConfigManager";
 import type { AdminSection, BlogPost } from "./types";
 import { formatDate, initials } from "./utils";
 import "./Admin.css";
@@ -59,6 +63,7 @@ const CONTENT_NAVIGATION: NavigationItem[] = [
     id: "cases",
     label: "Cases de sucesso",
     icon: BriefcaseBusiness,
+    available: true,
     privilege: "PRIV_CASES_ADMIN",
   },
   {
@@ -82,7 +87,15 @@ const SYSTEM_NAVIGATION: NavigationItem[] = [
     id: "contacts",
     label: "Contatos",
     icon: Inbox,
+    available: true,
     privilege: "PRIV_CONTACTS_VIEW",
+  },
+  {
+    id: "email",
+    label: "Configurações de e-mail",
+    icon: Settings2,
+    available: true,
+    privilege: "PRIV_COMPANY_INFO_ADMIN",
   },
   {
     id: "company",
@@ -108,33 +121,13 @@ const SECTION_LABELS: Record<AdminSection, string> = {
   contacts: "Contatos",
   company: "Informações institucionais",
   team: "Equipe e acessos",
+  email: "Configurações de e-mail",
 };
 
 const PLACEHOLDER_COPY: Record<
-  Exclude<AdminSection, "dashboard" | "blog" | "partners" | "team">,
+  Exclude<AdminSection, "dashboard" | "blog" | "partners" | "team" | "cases" | "indicators" | "contacts" | "email">,
   { eyebrow: string; title: string; description: string; icon: LucideIcon }
 > = {
-  cases: {
-    eyebrow: "Módulo em preparação",
-    title: "Cases de sucesso",
-    description:
-      "O cadastro e a publicação de cases ainda não estão disponíveis. Nenhum conteúdo demonstrativo será criado enquanto a integração com o backend não estiver concluída.",
-    icon: BriefcaseBusiness,
-  },
-  indicators: {
-    eyebrow: "Conteúdo da home",
-    title: "Indicadores",
-    description:
-      "Este módulo receberá os números institucionais exibidos na página inicial, mantendo os valores no formato de texto previsto pelo sistema.",
-    icon: ChartNoAxesCombined,
-  },
-  contacts: {
-    eyebrow: "Relacionamento",
-    title: "Contatos recebidos",
-    description:
-      "A caixa de entrada administrativa será somente para leitura, de acordo com o contrato atual.",
-    icon: Inbox,
-  },
   company: {
     eyebrow: "Diretoria",
     title: "Informações institucionais",
@@ -375,7 +368,7 @@ function Dashboard({
 }
 
 interface PlaceholderModuleProps {
-  section: Exclude<AdminSection, "dashboard" | "blog" | "partners" | "team">;
+  section: Exclude<AdminSection, "dashboard" | "blog" | "partners" | "team" | "cases" | "indicators" | "contacts" | "email">;
 }
 
 function PlaceholderModule({ section }: PlaceholderModuleProps) {
@@ -519,7 +512,10 @@ export default function Admin() {
       );
     }
     if (activeSection === "cases") {
-      return <PlaceholderModule section="cases" />;
+      return <CaseManager onNotify={setNotification} />;
+    }
+    if (activeSection === "contacts") {
+      return <ContactsManager onNotify={setNotification} />;
     }
     if (activeSection === "partners") {
       return <PartnerManager onNotify={setNotification} />;
@@ -529,6 +525,9 @@ export default function Admin() {
     }
     if (activeSection === "indicators") {
       return <IndicatorManager onNotify={setNotification} />;
+    }
+    if (activeSection === "email") {
+      return <EmailConfigManager onNotify={setNotification} />;
     }
 
     return <PlaceholderModule section={activeSection} />;

@@ -1265,6 +1265,68 @@
   font-size: 0.62rem;
 }
 
+.admin-checkable-fields {
+  display: grid;
+  gap: 0.6rem;
+  margin-top: 1rem;
+}
+
+.admin-checkable {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--admin-border);
+  border-radius: 0.65rem;
+  background: #fff;
+  cursor: pointer;
+  transition: border-color var(--transition-fast);
+}
+
+.admin-checkable:hover {
+  border-color: var(--admin-brand);
+}
+
+.admin-checkable input {
+  margin-top: 0.2rem;
+}
+
+.admin-checkable span {
+  display: grid;
+  gap: 0.12rem;
+}
+
+.admin-checkable strong {
+  color: var(--admin-text);
+  font-size: 0.72rem;
+}
+
+.admin-checkable small {
+  color: var(--admin-muted-soft);
+  font-size: 0.62rem;
+  line-height: 1.4;
+}
+
+.admin-activate-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-right: 0.35rem;
+  padding: 0.35rem 0.6rem;
+  border: 1px solid var(--admin-brand);
+  border-radius: 0.55rem;
+  background: rgba(63, 84, 245, 0.06);
+  color: var(--admin-brand);
+  font-size: 0.62rem;
+  font-weight: 650;
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+
+.admin-activate-button:hover {
+  background: rgba(63, 84, 245, 0.12);
+}
+
 .admin-field__hint {
   display: block;
   margin-top: 0.32rem;
@@ -2284,4 +2346,123 @@
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+}
+
+/* ===== Contatos (somente leitura) ===== */
+
+.admin-toolbar__info {
+  margin-left: auto;
+  font-size: 0.82rem;
+  color: var(--admin-muted, #64748b);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.admin-clickable-row {
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.admin-clickable-row:hover {
+  background-color: var(--admin-surface-soft, #f1f5f9);
+}
+
+.admin-row-action-link {
+  display: inline-flex;
+  width: 2rem;
+  height: 2rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--admin-border, #e2e8f0);
+  border-radius: 0.5rem;
+  background: var(--admin-surface, #fff);
+  color: var(--admin-muted-strong, #334155);
+  cursor: pointer;
+}
+
+.admin-row-action-link:hover {
+  border-color: var(--admin-primary, #1d4ed8);
+  color: var(--admin-primary, #1d4ed8);
+}
+
+.admin-contact-detail {
+  margin: 0;
+  display: grid;
+  gap: 0.9rem;
+}
+
+.admin-contact-detail > div {
+  padding-bottom: 0.9rem;
+  border-bottom: 1px solid var(--admin-border, #e2e8f0);
+}
+
+.admin-contact-detail > div:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.admin-contact-detail dt {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.3rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--admin-muted, #64748b);
+}
+
+.admin-contact-detail dd {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--admin-text, #0f172a);
+  overflow-wrap: anywhere;
+}
+
+.admin-contact-detail dd a {
+  color: var(--admin-primary, #1d4ed8);
+  text-decoration: none;
+}
+
+.admin-message-body {
+  resize: none;
+  line-height: 1.6;
+}
+
+.admin-message-body[readonly] {
+  background: var(--admin-surface-soft, #f8fafc);
+}
+
+.admin-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.admin-pagination button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.1rem;
+  height: 2.1rem;
+  border: 1px solid var(--admin-border, #e2e8f0);
+  border-radius: 0.5rem;
+  background: var(--admin-surface, #fff);
+  color: var(--admin-muted-strong, #334155);
+  cursor: pointer;
+}
+
+.admin-pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.admin-pagination span {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--admin-muted, #64748b);
 }

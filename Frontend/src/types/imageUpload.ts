@@ -1,4 +1,4 @@
-export type ImageUploadTarget = "blog" | "partners";
+export type ImageUploadTarget = "blog" | "partners" | "cases";
 
 export interface ImageUploadResponse {
   url: string;

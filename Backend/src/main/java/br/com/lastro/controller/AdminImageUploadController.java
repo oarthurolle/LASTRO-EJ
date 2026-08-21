@@ -40,6 +40,14 @@ public class AdminImageUploadController {
         return created(imageStorage.store(file, ImagePurpose.PARTNER));
     }
 
+    @PostMapping(value = "/cases", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasAuthority('PRIV_CASES_ADMIN')")
+    public ResponseEntity<ImageUploadResponseDTO> uploadCaseImage(
+            @RequestParam("file") MultipartFile file
+    ) {
+        return created(imageStorage.store(file, ImagePurpose.CASE));
+    }
+
     private ResponseEntity<ImageUploadResponseDTO> created(StoredImage image) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new ImageUploadResponseDTO(image.url(), image.contentType(), image.size()));

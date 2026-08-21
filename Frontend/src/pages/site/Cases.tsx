@@ -25,21 +25,26 @@ export default function Cases() {
   const filtrados = useMemo(() => {
     return cases
       .filter((c) => categoria === "Todos" || c.serviceCategory === categoria)
-      .sort((a, b) => new Date(b.projectDate).getTime() - new Date(a.projectDate).getTime());
+      .sort(
+        (a, b) =>
+          (b.projectDate ? new Date(b.projectDate).getTime() : 0) -
+          (a.projectDate ? new Date(a.projectDate).getTime() : 0),
+      );
   }, [cases, categoria]);
 
   const visiveis = filtrados.slice(0, visibleCount);
   const primeiroComDepoimento = cases.find((c) => c.testimonial);
 
-  function formatDateBR(dateString: string) {
+  function formatDateBR(dateString: string | null) {
     if (!dateString) return "";
     const date = new Date(dateString);
     return date.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
   }
 
   return (
-    <div className="cases-page container">
-      <section className="cases__hero">
+    <section className="cases">
+      <div className="cases-page container">
+        <section className="cases__hero">
         <span className="cases__eyebrow">Casos</span>
         <h1>Conheça nossos projetos</h1>
       </section>
@@ -65,7 +70,11 @@ export default function Cases() {
             {visiveis.map((c) => (
               <Link key={c.id} to={`/cases/${c.id}`} className="cases__card">
                 <div className="cases__media">
-                  <img src={c.coverImageUrl} alt={c.clientName} />
+                  {c.coverImageUrl ? (
+                    <img src={c.coverImageUrl} alt={c.clientName} />
+                  ) : (
+                    <div className="cases__media-placeholder">{c.clientName}</div>
+                  )}
                   <div className="cases__media-content">
                     <span className="cases__cat">{c.serviceCategory}</span>
                     <h3>{c.clientName}</h3>
@@ -105,7 +114,7 @@ export default function Cases() {
       {primeiroComDepoimento && (
         <section className="cases__testimonial-wrap">
           <span className="cases__eyebrow" style={{ textAlign: "center" }}>Depoimento</span>
-          <h2 style={{ fontSize: "var(--font-size-h2)", marginBottom: "var(--space-lg)", textAlign: "center", color: "var(--color-primary-900)" }}>
+          <h2 style={{ fontSize: "var(--font-size-h2)", marginBottom: "var(--space-lg)", textAlign: "center", color: "var(--color-text-light)" }}>
             Conheça quem já confiou na Lastro
           </h2>
           <div className="cases__testimonial-card">
@@ -131,6 +140,7 @@ export default function Cases() {
           Falar com um consultor
         </a>
       </section>
-    </div>
+      </div>
+    </section>
   );
 }

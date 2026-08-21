@@ -1,4 +1,5 @@
 import "./Services.css";
+import { Link } from "react-router-dom";
 import Button from "../../../common/Button";
 
 import mascot from "../../../../assets/images/Home/mascot.png";
@@ -96,7 +97,9 @@ const Services = () => {
 
        
         <div className="services__button">
-            <Button variant="secondary">Saiba Mais</Button>
+            <Link to="/servicos">
+              <Button variant="secondary">Saiba Mais</Button>
+            </Link>
         </div>
       </div>
     </section>
